@@ -1,0 +1,283 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_test_run" hrl_file="protocol_test_run"]
+[ts file="test-run-protocol.data.ts"]
+module TestRunProtocol
+{
+    // Test runs
+    enum TestRunOrderBy
+    {
+        id;
+        status;
+        created_at;
+        updated_at;
+        started_at;
+        finished_at;
+    }
+
+    record CreateTestRunRequest
+    {
+        ?string title;
+    }
+
+    enum CreateTestRunError
+    {
+        project_not_exists;
+        title_already_exists;
+    }
+
+    enum StartTestRunError
+    {
+        already_started;
+        already_closed;
+    }
+
+    enum CloseTestRunError
+    {
+        already_closed;
+    }
+
+    enum ReopenTestRunError
+    {
+        not_closed;
+    }
+
+    enum CloneTestRunError
+    {
+        project_not_exists;
+        title_already_exists;
+    }
+
+    [* patch_record]
+    record UpdateTestRunRequest
+    {
+        ?string title;
+    }
+
+    enum UpdateTestRunError
+    {
+        title_already_exists;
+    }
+
+    // Test run items
+    record CreateTestRunItemRequest
+    {
+        long case_id;
+        int order_num;
+    }
+
+    enum CreateTestRunItemError
+    {
+        test_run_not_exists;
+        test_case_not_exists;
+        reporter_not_exists;
+    }
+
+    [* patch_record]
+    record UpdateTestRunItemRequest
+    {
+        ?string summary;
+        int order_num;
+        ?string jira_issue_key;
+    }
+
+    enum UpdateTestRunItemError
+    {
+        nothing_to_update;
+    }
+
+    enum StartTestRunItemError
+    {
+        already_started;
+        already_finished;
+        assignee_not_exists;
+    }
+
+    record FinishTestRunItemRequest
+    {
+        ?string summary;
+    }
+
+    enum FinishTestRunItemError
+    {
+        already_finished;
+        assignee_not_exists;
+    }
+
+    record BlockTestRunItemRequest
+    {
+        long failed_setup_id;
+        ?string setup_parameter_value;
+        ?string summary;
+    }
+    
+    enum BlockTestRunItemError
+    {
+        already_finished;
+        assignee_not_exists;
+        setup_not_exists;
+    }
+
+    enum ReopenTestRunItemError
+    {
+        already_opened;
+        assignee_not_exists;
+    }
+
+    [erlang http.server]
+    [ts http.client file="test-run-protocol.service.ts"]
+    webservice HyperionTestRunService
+    {
+        // Managing test runs
+        [erlang http.handler="rest/generated/web_rest_test_runs_project" http.callback="web_rest_callback_test_run"]
+        GetTestRuns => GET /api/test/runs/project/{long project_id}
+            ?order_by={TestRunOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={long offset}
+            &limit={long limit}
+            &status={?TestRunStatus status} ->
+            200: CollectionSlice<TestRun>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run" http.callback="web_rest_callback_test_run"]
+        GetTestRun => GET /api/test/runs/{long id} ->
+            200: TestRun,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_runs" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        CreateTestRun => POST /api/test/runs/new/{long project_id} CreateTestRunRequest ->
+            200: TestRun,
+            400: BadRequestError<CreateTestRunError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_start" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        StartTestRun => PUT /api/test/runs/{long id}/start Empty ->
+            200: TestRun,
+            400: BadRequestError<StartTestRunError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_close" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        CloseTestRun => PUT /api/test/runs/{long id}/close Empty ->
+            200: TestRun,
+            400: BadRequestError<CloseTestRunError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_reopen" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        ReopenTestRun => PUT /api/test/runs/{long id}/reopen Empty ->
+            200: TestRun,
+            400: BadRequestError<ReopenTestRunError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_clone" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        CloneTestRun => PUT /api/test/runs/{long id}/clone Empty ->
+            200: TestRun,
+            400: BadRequestError<CloneTestRunError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        UpdateTestRun => PUT /api/test/runs/{long id} UpdateTestRunRequest ->
+            200: TestRun,
+            400: BadRequestError<UpdateTestRunError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run" http.callback="web_rest_callback_test_run" http.cowboy_req]
+        DeleteTestRun => DELETE /api/test/runs/{long id} ->
+            200: GenericResponse,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Managing test run items
+        [erlang http.handler="rest/generated/web_rest_test_run_items_run" http.callback="web_rest_callback_test_run_item"]
+        GetTestRunItems => GET /api/test/run-items/run/{long run_id} ->
+            200: Collection<TestRunItem>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item" http.callback="web_rest_callback_test_run_item"]
+        GetTestRunItem => GET /api/test/run-items/{long id} ->
+            200: TestRunItem,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_items" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        CreateTestRunItems => POST /api/test/run-items/new/{long run_id} CreateTestRunItemRequest ->
+            200: Collection<TestRunItem>,
+            400: BadRequestError<CreateTestRunItemError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        UpdateTestRunItem => PUT /api/test/run-items/{long id} UpdateTestRunItemRequest ->
+            200: TestRunItem,
+            400: BadRequestError<UpdateTestRunItemError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item_start" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        StartTestRunItem => PUT /api/test/run-items/{long id}/start Empty ->
+            200: TestRunItem,
+            400: BadRequestError<StartTestRunItemError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item_pass" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        PassTestRunItem => PUT /api/test/run-items/{long id}/pass FinishTestRunItemRequest ->
+            200: TestRunItem,
+            400: BadRequestError<FinishTestRunItemError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item_fail" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        FailTestRunItem => PUT /api/test/run-items/{long id}/fail FinishTestRunItemRequest ->
+            200: TestRunItem,
+            400: BadRequestError<FinishTestRunItemError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item_block" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        BlockTestRunItem => PUT /api/test/run-items/{long id}/block BlockTestRunItemRequest ->
+            200: TestRunItem,
+            400: BadRequestError<BlockTestRunItemError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item_reopen" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        ReopenTestRunItem => PUT /api/test/run-items/{long id}/reopen Empty ->
+            200: TestRunItem,
+            400: BadRequestError<ReopenTestRunItemError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_run_item" http.callback="web_rest_callback_test_run_item" http.cowboy_req]
+        DeleteTestRunItem => DELETE /api/test/run-items/{long id} ->
+            200: GenericResponse,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

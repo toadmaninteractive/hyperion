@@ -1,0 +1,5 @@
+Hyperion DB Setup AS superuser
+===============================
+
+CREATE ROLE hyperion LOGIN password 'hyperion_pwd';
+CREATE DATABASE hyperion ENCODING 'UTF8' OWNER hyperion;

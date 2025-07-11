@@ -1,0 +1,3 @@
+-define(min_slice_length, 1).
+-define(max_slice_length, 100).
+-define(slice_limit(Length), min(max(Length, ?min_slice_length), ?max_slice_length)).

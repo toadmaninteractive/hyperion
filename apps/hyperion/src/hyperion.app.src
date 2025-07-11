@@ -1,0 +1,7 @@
+{application, hyperion, [
+    {description, "Hyperion Server"},
+    {vsn, "0.1.0"},
+    {modules, []},
+    {registered, []},
+    {applications, [sasl, db, access, slack, web]}
+]}.

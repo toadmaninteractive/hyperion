@@ -1,0 +1,101 @@
+.pointer {
+    cursor: pointer;
+}
+
+.mat-tree-node {
+    overflow: visible;
+    border: 2px solid transparent;
+}
+
+.drop-center {
+    border-color: var(--primary) !important;
+    transition: border 125ms linear;
+}
+
+.drop-before {
+    border-top: 30px solid var(--primary) !important;
+    transition: border-top 125ms linear;
+    // border-image: linear-gradient(to right, var(--primary), var(--white)) 30;
+}
+
+.drop-after {
+    border-bottom: 30px solid var(--primary) !important;
+    transition: border-bottom 125ms linear;
+    // border-image: linear-gradient(to right, var(--primary), var(--white)) 30;
+}
+
+.drag-start {
+    border: 1px dashed var(--info);
+    color: black;
+}
+
+.drop-root {
+    border: 1px dashed var(--gray);
+    margin-left: 15px;
+    height: 30px;
+}
+
+.drag-handle {
+    cursor: grab;
+}
+
+.drop-parent {
+    position: absolute;
+    left: -90px;
+    top:33%;
+    z-index: 100;
+    background-color: rgba(85, 120, 235, 0.6);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    -webkit-box-shadow: 3px 3px 15px -5px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 3px 3px 15px -5px rgba(0, 0, 0, 0.75);
+    box-shadow: 3px 3px 15px -5px rgba(0, 0, 0, 0.75);
+}
+
+.drop-parent-select {
+    background-color: rgba(85, 120, 235, 1);
+    transition: linear 250ms;
+}
+
+.drop-text {
+    height: 60px;
+    padding: 45px 10px;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    font-weight: 400;
+}
+.block-add-node{
+    display: block;
+    padding-left: 22px;
+    margin-top: -10px;
+}
+
+input[type="text"].default-disable {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    background-color: rgba(255, 255, 255, 0.125);
+}
+
+input[type="text"].default-disable:disabled {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    background-color: rgba(255, 255, 255, 0.125);
+}
+
+.button-link-add{
+    color: #3f51b5;
+}
+.button-link-add:hover{
+    cursor: pointer;
+    border-bottom: 1px solid #3f51b5;
+}
+
+.mat-icon-not{
+    display: block;
+    height: 40px;
+    width: 22px;
+}
+
+

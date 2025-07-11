@@ -1,0 +1,356 @@
+<div class="m-portlet mb-0">
+    <div class="m-portlet__head compact align-items-center">
+        <div class="d-inline-flex">
+            <div>
+                <button
+                    mat-raised-button
+                    color="primary"
+                    (click)="addDraftTreeNode(null)"
+                    [disabled]="treeNodeHasDraftChildren(null)">
+                    Add setup step
+                </button>
+            </div>
+
+            <div class="ml-2 m-button-group">
+                <button mat-raised-button (click)="collapseAllTreeNodes()">Collapse</button>
+                <button mat-raised-button (click)="expandAllTreeNodes()">Expand</button>
+            </div>
+        </div>
+
+        <div class="m-portlet__head-tools">
+            <ul class="m-portlet__nav">
+                <li>
+                    <div class="pr-2">
+                        <mat-form-field floatLabel="never" style="width: 300px">
+                            <input matInput placeholder="Type to filter..."
+                                   [(ngModel)]="filterText"
+                                   (keyup)="applyFilter($event.target.value)">
+                        </mat-form-field>
+                    </div>
+                </li>
+
+                <li class="m-portlet__nav-item">
+<!--                    <a-->
+<!--                        href="javascript:void(null);"-->
+<!--                        class="m-portlet__nav-link m-portlet__nav-link&#45;&#45;icon"-->
+<!--                        title="Refresh"-->
+<!--                        matTooltip="Click to refresh"-->
+<!--                        matTooltipPosition="above"-->
+<!--                        (click)="refresh()">-->
+<!--                        <i class="las la-sync-alt"></i>-->
+<!--                    </a>-->
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="d-flex">
+        <as-split unit="percent" direction="horizontal">
+            <as-split-area [size]="activeNode ? 70 : 100">
+                <div
+                    [class.darken]='activeNode'
+                    class="pt-2 col-12 left-split-content">
+                    <perfect-scrollbar style="height: 70vh">
+                        <m-dynamic-tree-map
+                            [inputNodes$]="setupService.setupTree$"
+                            [flatNodes]="setupService.flatSetup$ | async"
+                            [hiddenNodeSet]="hiddenNodeSetId"
+                            [dimmedNodeSet]="dimmedNodeSetId"
+                            [canDrag]="true"
+                            (nodeAdded)="addDraftTreeNode($event)"
+                            (nodeRemoved)="deleteSetupStep($event)"
+                            (nodeModified)="updateAfterDrop($event)"
+                            (showNotification)="showNotification($event)"
+                            (treeRendered)="afterTreeRendered($event)">
+                            <ng-template #nodeTitleTemplate let-node="node">
+                                <input
+                                    type="text"
+                                    id="input-setup-{{ node.item.id }}"
+                                    class="monospace new-in-place"
+                                    style="max-width: 100ch !important; padding-left: 5px !important;"
+                                    [class.changed]="node.item.id === 0 || (pristineSetupStep.get(node.item.id) && node.item.title !== pristineSetupStep.get(node.item.id).title)"
+                                    [class.draft]="node.item.isDraft"
+                                    [class.m-selected]="activeNode && node.item.id === activeNode.item.id"
+                                    [style.width.ch]="node.item.title.length ? node.item.title.length + 2 : 15"
+                                    [placeholder]="node.item.title.length === 0 ? 'Setup step title' : null"
+                                    [(ngModel)]="node.item.title"
+                                    (click)="node.item.id > 0 ? setActiveTreeNode(node) : null;"
+                                    (keyup.escape)="revertTreeNode(node); $event.target.blur()"
+                                    (keyup.enter)="$event.target.blur()"
+                                    (blur)="invalidateTreeNode(node, node.item.id === 0 ? null : 'title', $event.target.value);">
+
+                                <i
+                                    *ngIf="tooltipTextShow(node)"
+                                    class="las la-exclamation-triangle c-warning f-s-20"
+                                    [matTooltip]="tooltipTextShow(node)"
+                                    matTooltipPosition="above">
+                                </i>
+                            </ng-template>
+                        </m-dynamic-tree-map>
+                    </perfect-scrollbar>
+                </div>
+            </as-split-area>
+
+            <as-split-area [size]="activeNode ? 30 : 0" *ngIf="activeNode">
+                <div class="col pt-3 right-split-content">
+                    <perfect-scrollbar style="height: 70vh">
+                        <div class="sticky-block">
+                            <div class="title-container">
+                                <input
+                                    matInput
+                                    type="text"
+                                    class="form-control inline-block"
+                                    style="max-width: 65%"
+                                    [class.changed]="treeNodeChanged(activeNode, 'title')"
+                                    [placeholder]="activeNode.item.title.length === 0 ? 'Parameter title' : null"
+                                    [(ngModel)]="activeNode.item.title"
+                                    (keyup.escape)="revertTreeNodeTitle(activeNode); $event.target.blur()"
+                                    (blur)="invalidateTreeNode(activeNode, 'title')">
+
+                                <div class="block text-right" style="width: 35%">
+                                    <div class="" (click)="resetActiveTreeNode()">
+                                        <i class="las la-times"></i>
+                                    </div>
+                                </div>
+
+                                <div class="block text-left">
+                                        <span class="sticky-id dimmed">
+                                            #{{ activeNode.item.id }}
+                                        </span>
+                                </div>
+                            </div>
+
+                            <ul class="basic-tree pl-0">
+                                <li>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label class="f-w-600 block">Description</label>
+
+                                            <textarea
+                                                matInput
+                                                cdkTextareaAutosize
+                                                cdkAutosizeMinRows="2"
+                                                cdkAutosizeMaxRows="6"
+                                                class="form-control"
+                                                [class.changed]="treeNodeChanged(activeNode, 'description')"
+                                                placeholder="Put some text here"
+                                                [(ngModel)]="activeNode.item.description"
+                                                (keyup.escape)="revertTreeNodeDescription(activeNode); $event.target.blur()"
+                                                (blur)="invalidateTreeNode(activeNode, 'description')">
+                                            </textarea>
+                                            <div class="textarea-border"></div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li>
+                                    <div class="row">
+                                        <div class="col-md-12 mini">
+                                            <label class="f-w-600 block mb-0">Parameter</label>
+
+                                            <ng-container [ngSwitch]="!!activeParam">
+                                                <ng-container *ngSwitchCase="false">
+                                                    <div class="param-select-wrapper">
+                                                        <div class="param-select" *ngIf="parametersList.size > 0;else notParameters ">
+                                                            <mat-icon class="node-add-icon param-add-icon c-success f-w-600">
+                                                                add
+                                                            </mat-icon>
+                                                            <a href="javascript:void(null)"
+                                                               class="f-w-400"
+                                                               (click)="changeParameter()">
+                                                                Add parameter
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </ng-container>
+
+                                                <ng-container *ngSwitchCase="true">
+                                                    <div class="param-select-wrapper">
+                                                        <div class="param-select">
+                                                            <a href="javascript:void(null)" class="f-w-400"
+                                                               (click)="changeParameter()">
+                                                                {{activeParam.item.title}}
+                                                            </a>
+                                                            <mat-icon
+                                                                *ngIf="activeNode.item.parameterId"
+                                                                class="param-delete-icon c-error align-text-bottom clickable animate"
+                                                                style="height: 21px"
+                                                                (click)="deleteParameter(activeNode)">
+                                                                close
+                                                            </mat-icon>
+                                                        </div>
+                                                    </div>
+                                                </ng-container>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li>
+                                    <div class="row">
+                                        <div class="col-md-12 mini">
+                                            <label class="f-w-600 block">Attachments</label>
+                                            <div class="row">
+                                                <div class="col-md-12 mt-1" style="display: flex; flex-wrap: wrap">
+                                                    <ng-container *ngIf="activeFileAttachments?.length > 0">
+                                                        <ng-container
+                                                            [ngTemplateOutlet]="(activeFileAttachments?.length > 3 && showMoreAttachments) ? moreAttachments : lessAttachments">
+                                                        </ng-container>
+                                                    </ng-container>
+
+                                                    <ng-container
+                                                        [ngTemplateOutlet]="activeFileAttachments?.length === 0 ? uploadButton: null">
+                                                    </ng-container>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li class="created-updated-row">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="f-w-600 block mb-0">Created At</label>
+                                            <input
+                                                matInput
+                                                type="text"
+                                                class="form-control"
+                                                readonly
+                                                value="{{ activeNode.item.createdAt | date: 'yyyy-MM-dd HH:mm' }}">
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="f-w-600 block mb-0">Updated At</label>
+
+                                            <input
+                                                matInput
+                                                type="text"
+                                                class="form-control"
+                                                readonly
+                                                value="{{ activeNode.item.updatedAt | date: 'yyyy-MM-dd HH:mm' }}">
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </perfect-scrollbar>
+                </div>
+            </as-split-area>
+        </as-split>
+    </div>
+</div>
+
+<ng-template #lessAttachments>
+    <div class="row m-0">
+        <ng-container *ngFor="let item of activeFileAttachments; let i = index">
+            <div
+                *ngIf="i < 3"
+                class="thumb mr-1 mb-1 inline-block animate clickable"
+                [matTooltip]="item.originalFilename"
+                matTooltipPosition="above">
+                <ng-container [ngSwitch]="!!item.thumbFilename">
+                    <img
+                        src="/download/attachments/{{ item.thumbFilename }}"
+                        *ngSwitchCase="true"
+                        (click)="openGallery(i)">
+
+                    <a href="/download/attachments/{{ item.filename }}"
+                       target="_blank"
+                       [ngSwitch]="!!item.thumbFilename">
+                        <div class="placeholder inline-block" *ngSwitchCase="false">File</div>
+                    </a>
+                </ng-container>
+
+                <div
+                    class="delete animate"
+                    (confirm)="unlinkFileAttachment(item.id, this.activeNode.item.id)"
+                    [swal]="{
+                        title: 'Confirmation',
+                        html: 'Delete <b>'+ item.originalFilename + '</b>?',
+                        type: 'question',
+                        confirmButtonText: 'Delete',
+                        confirmButtonColor: '#f4516c',
+                        confirmButtonClass: 'btn-danger',
+                        showCancelButton: true,
+                        heightAuto: false
+                    }">
+                    <mat-icon class="animate c-white">clear</mat-icon>
+                </div>
+            </div>
+        </ng-container>
+
+        <div
+            class="attachment-count-container clickable mr-1 mb-1 animate"
+            (click)="showMoreAttachments = !showMoreAttachments"
+            *ngIf="activeFileAttachments?.length > 3">
+            <div class="attachment-count-label animate"> + {{ activeFileAttachments?.length - 3 }} </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="uploadButton"></ng-container>
+    </div>
+</ng-template>
+
+<ng-template #moreAttachments>
+    <div
+        class="thumb mr-1 mb-1 inline-block animate clickable"
+        *ngFor="let item of activeFileAttachments; let i = index"
+        [matTooltip]="item.originalFilename"
+        matTooltipPosition="above">
+        <ng-container [ngSwitch]="!!item.thumbFilename">
+            <img
+                src="/download/attachments/{{ item.thumbFilename }}"
+                *ngSwitchCase="true"
+                (click)="openGallery(i)">
+
+            <a href="/download/attachments/{{ item.filename }}" target="_blank" [ngSwitch]="!!item.thumbFilename">
+                <div class="placeholder inline-block" *ngSwitchCase="false">File</div>
+            </a>
+        </ng-container>
+
+        <div
+            class="delete animate"
+            (confirm)="unlinkFileAttachment(item.id, this.activeNode.item.id)"
+            [swal]="{
+                title: 'Confirmation',
+                html: 'Delete <b>'+ item.originalFilename + '</b>?',
+                type: 'question',
+                confirmButtonText: 'Delete',
+                confirmButtonColor: '#f4516c',
+                confirmButtonClass: 'btn-danger',
+                showCancelButton: true,
+                heightAuto: false
+            }">
+            <mat-icon class="animate c-white">clear</mat-icon>
+        </div>
+    </div>
+
+    <ng-container *ngTemplateOutlet="uploadButton"></ng-container>
+</ng-template>
+
+<ng-template #uploadButton>
+    <ng-container *ngFor="let item of attachmentsProgress | keyvalue">
+        <div class="progress-conteiner mr-1 mb-1" *ngIf="item.value | async">
+            <mat-progress-spinner
+                color="primary"
+                mode="determinate"
+                [value]="item.value | async">
+            </mat-progress-spinner>
+
+            <div class="progress-percent">
+                {{ item.value | async }}%
+            </div>
+        </div>
+    </ng-container>
+
+    <div class="uploader compact inline-block clickable mb-1">
+        <ngx-file-drop dropZoneLabel="Drop files here" (onFileDrop)="dropped($event)">
+            <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+                <button mat-icon-button color="primary" class="animate" (click)="openFileSelector()">
+                    <mat-icon class="animate">add</mat-icon>
+                </button>
+            </ng-template>
+        </ngx-file-drop>
+    </div>
+</ng-template>
+
+<ng-template #notParameters><span class="f-s-12">{{ project.title }} does not contain any parameters</span></ng-template>

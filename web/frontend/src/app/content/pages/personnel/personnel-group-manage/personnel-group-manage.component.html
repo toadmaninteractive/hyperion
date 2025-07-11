@@ -1,0 +1,215 @@
+<div class="row mb-2" *ngIf="alert$ | async">
+    <div class="col-lg-12 mb-2 f-s-14">
+        <m-alert
+            [message]="(alert$ | async)?.message"
+            [kind]="(alert$ | async)?.kind"
+            [dismissible]="(alert$ | async)?.dismissable">
+        </m-alert>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-9">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            Group access roles
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <div class="pr-2">
+                                <mat-form-field floatLabel="never" style="width: 300px">
+                                    <input
+                                        matInput
+                                        placeholder="Type to filter..."
+                                        [value]="needle$ | async"
+                                        (keyup)="onNeedleChange($event.target.value)" />
+                                </mat-form-field>
+                            </div>
+                        </li>
+
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null)"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="onReload()">
+                                <i class="la la-refresh"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding">
+                <div class="m-portlet__preview p-0">
+                    <table
+                        class="table-hover"
+                        mat-table
+                        [dataSource]="dataSource$ | async"
+                        matSort
+                        [matSortActive]="(sort$ | async).active"
+                        [matSortDirection]="(sort$ | async).direction"
+                        matSortDisableClear
+                        (matSortChange)="onSortChange($event)">
+                        <!-- ID column -->
+                        <ng-container [matColumnDef]="column.ProjectId">
+                            <th mat-header-cell mat-sort-header class="cell-uid" *matHeaderCellDef>
+                                Project ID
+                            </th>
+
+                            <td mat-cell *matCellDef="let obj" class="cell-uid">
+                                <strong>{{ obj.projectId }}</strong>
+                            </td>
+                        </ng-container>
+
+                        <!-- Project title column -->
+                        <ng-container [matColumnDef]="column.ProjectTitle">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>
+                                Project Title
+                            </th>
+
+                            <td mat-cell *matCellDef="let obj">
+                                <!--
+                                <a routerLink="/projects/{{ obj.projectId }}/manage" matTooltip="Click to manage" matTooltipPosition="above">
+                                    <strong>{{ obj.projectTitle }}</strong>
+                                </a>
+                                -->
+
+                                <strong>{{ obj.projectTitle }}</strong>
+                            </td>
+                        </ng-container>
+
+                        <!-- Group role column -->
+                        <ng-container [matColumnDef]="column.GroupRole">
+                            <th mat-header-cell mat-sort-header class="cell-role" *matHeaderCellDef>
+                                <span matTooltip="Access role assigned to current group explicitly" matTooltipPosition="above">
+                                    Group Role
+                                    <i class="la la-question-circle hint-icon dimmed"></i>
+                                </span>
+                            </th>
+
+                            <td mat-cell *matCellDef="let obj">
+                                <div class="clickable" [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{ role: obj }">
+                                    <a href="javascript:void(null)" matTooltip="Click to change" matTooltipPosition="above">
+                                        <strong>{{ roleName(obj.groupRole) || 'None' }}</strong>
+                                    </a>
+
+                                    <mat-icon [inline]="true" class="metal v-a-middle">keyboard_arrow_down</mat-icon>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Table rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+                        <tr
+                            mat-row
+                            *matRowDef="let row; columns: displayedColumns"
+                            [class.dimmed]="loading$ | async"
+                            [class.deleted]="row.isDeleted">
+                        </tr>
+                    </table>
+
+                    <div class="card card-body blank p-0 table-row" *ngIf="(dataSource$ | async)?.data?.length === 0">
+                        <div class="inner-text f-s-14 f-w-400" [class.dimmed]="!(loading$ |async)">
+                            {{ (loading$ |async) ? 'Loading data from server...' : 'No data to display' }}
+                        </div>
+                    </div>
+
+                    <mat-paginator
+                        [length]="total$ | async"
+                        [pageSize]="(page$ | async).pageSize"
+                        [pageSizeOptions]="pageSizes"
+                        [pageIndex]="(page$ | async).pageIndex"
+                        (page)="onPageChange($event)"
+                        showFirstLastButtons>
+                    </mat-paginator>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            Group members
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <div class="pr-2">
+                                <mat-form-field floatLabel="never" style="width: 125px">
+                                    <input
+                                        matInput
+                                        placeholder="Type to filter..."
+                                        [value]="memberNeedle$ | async"
+                                        (keyup)="onMemberNeedleChange($event.target.value)" />
+                                </mat-form-field>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding">
+                <div class="m-portlet__preview p-0" [ngSwitch]="(group$ | async)?.memberCount">
+                    <ul class="members" *ngSwitchCase="0">
+                        <li class="member">
+                            Group does not have any members
+                        </li>
+                    </ul>
+
+                    <ul class="members" *ngSwitchDefault>
+                        <li class="member" *ngIf="(filteredMembers$ | async)?.length === 0">
+                            No users match search criteria
+                        </li>
+
+                        <ng-container *ngFor="let member of filteredMembers$ | async">
+                            <li class="member">
+                                <mat-icon [inline]="true" class="v-a-middle metal">person</mat-icon>
+                                <a routerLink="/personnel/accounts/{{ member }}" matTooltip="Click to manage" matTooltipPosition="above">
+                                    <span class="f-w-600">{{ member }}</span>
+                                </a>
+                            </li>
+                        </ng-container>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<mat-menu #roleMenu="matMenu">
+    <ng-template matMenuContent let-role="role">
+        <button mat-menu-item [disabled]="!role.groupRole" (click)="onRoleReset(role)">
+            None
+        </button>
+
+        <button mat-menu-item [disabled]="role.groupRole === accessRole.Consumer" (click)="onRoleChange(role, accessRole.Consumer)">
+            {{ roleName(accessRole.Consumer) }}
+        </button>
+
+        <button mat-menu-item [disabled]="role.groupRole === accessRole.Maintainer" (click)="onRoleChange(role, accessRole.Maintainer)">
+            {{ roleName(accessRole.Maintainer) }}
+        </button>
+
+        <button mat-menu-item [disabled]="role.groupRole === accessRole.Admin" (click)="onRoleChange(role, accessRole.Admin)">
+            {{ roleName(accessRole.Admin) }}
+        </button>
+    </ng-template>
+</mat-menu>

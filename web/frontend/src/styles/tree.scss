@@ -1,0 +1,200 @@
+.basic-tree-invisible {
+    display: none;
+}
+
+.basic-tree ul,
+.basic-tree li {
+    margin-top: 0;
+    margin-bottom: 0;
+    list-style-type: none;
+}
+
+.basic-tree .mat-tree-node {
+    min-height: 30px;
+    height: 35px;
+}
+
+.padded {
+    margin-top: -30px;
+    margin-bottom: -30px;
+    padding-top: 15px;
+    padding-bottom: 30px;
+}
+
+mat-tree.basic-tree {
+    background-color: transparent;
+}
+
+// Alignment of node items
+mat-nested-tree-node,
+mat-tree-node {
+
+    // Indendation of nodes
+    ul {
+        padding-left: 43px;
+    }
+
+    .mat-button-wrapper {
+        width: 18px !important;
+    }
+
+    .mat-icon-button {
+        width: min-content !important;
+
+        .mat-icon {
+            width: min-content !important;
+        }
+    }
+
+    .chevron-btn {
+        width: 22px !important;
+    }
+
+    // Node items from left to right:
+    .node-chevron-icon {
+        width: 18px;
+        height: 18px;
+        margin-top: 6px;
+        margin-right: 3px;
+    }
+
+    .node-drag-icon {
+        width: 18px;
+        height: 18px;
+        margin-right: 4px;
+        margin-top: -4px;
+    }
+
+    .node-assignment-icon {
+        margin-right: 4px;
+        margin-top: 2px;
+    }
+
+    .node-input-wrapper {
+        margin: 2px 1px 0px -2px;
+    }
+
+    .node-input-wrapper input {
+        padding: 0 0 0 4px;
+        text-align: left;
+    }
+
+    .node-add-icon {
+        /*
+        margin-left: 1px;
+        margin-right: 3px;
+        margin-top: -10px;
+         */
+    }
+
+    .node-delete-icon {
+        margin-top: 3px;
+    }
+}
+
+// Parametric Node
+.para-input[type="text"] {
+    text-decoration: underline;
+    background-color: rgba(85, 98, 116, 0.103)
+}
+
+.para-select-text {
+    margin: -5px 5px 0 0;
+}
+
+
+// Input Field
+/*input[type="text"]*/ .in-place {
+    & {
+        outline: none;
+        padding: 0px 50px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        transition: border 125ms linear,
+                    box-shadow 125ms linear,
+                    opacity 125ms linear;
+        box-shadow: 0 0 7px 0 transparent;
+        background-color: transparent;
+        max-width: 100ch !important;
+    }
+
+    &:hover {
+        border: 1px solid rgba(221, 221, 221, .75);
+        box-shadow: 0 0 7px 0 rgba(221, 221, 221, .75);
+        background-color: white;
+    }
+
+    &:focus {
+        border: 1px solid rgba(54, 163, 247, .75);
+        box-shadow: 0 0 7px 0 rgba(54, 163, 247, .5) !important;
+        background-color: white;
+    }
+
+    &.monospace {
+        font-family: 'JetBrains Mono', sans-serif;
+    }
+
+    &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
+        color: #aaa;
+    }
+}
+
+.changed {
+    font-style: italic !important;
+    color: rgba(54, 163, 247, 1) !important;
+}
+
+
+.new-in-place {
+    max-width: 100ch !important;
+    transition: visibility 0.5s;
+    & {
+        outline: none;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        transition: border 125ms linear,
+        box-shadow 125ms linear,
+        opacity 125ms linear;
+        box-shadow: 0 0 7px 0 transparent;
+        background-color: transparent;
+        max-width: 100ch !important;
+        font-size: 14px;
+    }
+
+    &:hover {
+        border: 1px solid rgba(221, 221, 221, .75);
+        box-shadow: 0 0 7px 0 rgba(221, 221, 221, .75);
+        background-color: white;
+    }
+
+    &:focus {
+        border: 1px solid rgba(54, 163, 247, .75);
+        box-shadow: 0 0 7px 0 rgba(54, 163, 247, .5) !important;
+        background-color: white;
+    }
+
+    &.monospace {
+        font-family: 'JetBrains Mono', sans-serif;
+    }
+
+    &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
+        color: #aaa;
+    }
+}
+
+.node-label {
+    font-size: 16px;
+    font-family: Arial;
+    margin: 5px 2px;
+}
+
+.icon-button {
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+button:disabled > .las {
+    color: grey !important;
+    cursor: default !important;
+}

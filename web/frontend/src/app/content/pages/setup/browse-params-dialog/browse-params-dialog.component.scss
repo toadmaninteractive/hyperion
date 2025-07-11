@@ -1,0 +1,42 @@
+.tree-label {
+    line-height: 40px;
+}
+
+mat-nested-tree-node,
+mat-tree-node {
+    min-height: 30px;
+    height: 35px;
+}
+
+.m-badge {
+    min-width: 40px;
+}
+
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.mat-tree-node {
+    overflow: visible;
+    border: 2px solid transparent;
+}
+
+.dialog-tree-invisible {
+    display: none;
+  }
+
+.dialog-tree ul,
+.dialog-tree li {
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style-type: none;
+}
+
+.mat-tree-node {
+    color: rgb(74, 124, 190);
+    cursor: pointer;
+}

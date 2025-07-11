@@ -1,0 +1,19 @@
+/* Topbar select styling */
+.m-topbar .mat-select-value {
+    color: white !important;
+}
+
+.m-topbar .mat-select-arrow {
+    color: rgba(255, 255, 255, .54) !important;
+}
+
+.m-topbar .mat-select-trigger {
+    border-bottom: 1px solid rgba(255, 255, 255, .34) !important;
+}
+
+.mat-select-panel.m-mat-select-panel {
+    border-radius: 2px;
+    -webkit-box-shadow: 0 1px 15px 1px rgba(69, 65, 78, .08);
+    -moz-box-shadow: 0 1px 15px 1px rgba(69, 65, 78, .08);
+    box-shadow: 0 1px 15px 1px rgba(69, 65, 78, .08);
+}

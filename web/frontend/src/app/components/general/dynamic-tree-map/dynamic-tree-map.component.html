@@ -1,0 +1,105 @@
+<div class="m-card-warning" *ngIf="!nodeTitleTemplate">
+    Node template not defined
+</div>
+
+<div
+    class="drop-parent"
+    *ngIf="draggedNode && draggedNode.item.parentId"
+    (dragover)="onDragOverRoot($event)"
+    (drop)="onDropToRoot($event)"
+    (dragleave)="onDragLeaveRoot()"
+    [class.drop-parent-select]="dragOverRoot">
+    <div class="drop-text">
+        Drop to root
+    </div>
+</div>
+
+<ul *ngIf="nodes && nodes.size > 0" class="tree-list">
+    <ng-container  *ngFor="let node of nodes | keyvalue">
+    <li *ngIf="!hiddenNodeSet.has(node.value.item.id)"
+        class="tree-list-item">
+        <ng-container
+            [ngTemplateOutlet]="node.value.children.length ? hasChild : noChild"
+            [ngTemplateOutletContext]="{ node: node.value }"></ng-container>
+    </li>
+    </ng-container>
+</ul>
+
+<ng-template #noChild let-node="node">
+    <ng-container [ngTemplateOutlet]="nodeItem" [ngTemplateOutletContext]="{ node: node }"></ng-container>
+</ng-template>
+
+<ng-template #hasChild let-node="node">
+    <ng-container [ngTemplateOutlet]="nodeItem" [ngTemplateOutletContext]="{ node: node }"></ng-container>
+
+    <ng-container *ngIf="node.expanded">
+        <ul class="tree-list">
+            <ng-container *ngFor="let child of node.children">
+                <li *ngIf="!hiddenNodeSet.has(child.item.id)"
+                    class="tree-list-item">
+                    <ng-container
+                        [ngTemplateOutlet]="child.children.length ? hasChild : noChild"
+                        [ngTemplateOutletContext]="{ node: child }"></ng-container>
+                </li>
+            </ng-container>
+        </ul>
+    </ng-container>
+</ng-template>
+
+<ng-template #nodeItem let-node="node">
+    <div class="item-node"
+         [attr.draggable]="node === draggedNode"
+         [class.dimmed]="dimmedNodeSet.has(node.item.id)"
+         [class.more]="dimmedNodeSet.has(node.item.id)"
+         [class.drag-start]="node === draggedNode"
+         [class.drop-center]="node === hoveredNode && draggedNodeHoveredType === 0 && node !== draggedNode && canDropInto(draggedNode, hoveredNode)"
+         [class.drop-before]="node === hoveredNode && draggedNodeHoveredType === -1 && node !== draggedNode && canDropBefore(draggedNode, hoveredNode)"
+         [class.drop-below]="node === hoveredNode && draggedNodeHoveredType === 1 && node !== draggedNode && canDropAfter(draggedNode, hoveredNode)"
+         (dragover)="onDragOver($event, node)"
+         (dragend)="onDragEnd($event)"
+         (drop)="onDrop($event, node)"
+         (dragstart)="onDragStart($event, node)">
+
+        <i class="las cursor-pointer"
+           *ngIf="node.children.length > 0"
+           [class.la-angle-right] = "!node.expanded"
+           [class.la-angle-down]= "node.expanded"
+           (click)="node.expanded = !node.expanded"></i>
+
+<!--        <i class="las" style="width: 20px; height: 20px;" *ngIf="node.children.length === 0"></i>-->
+
+        <mat-checkbox
+            *ngIf="showCheckboxes"
+            color="primary"
+            class="mr-1"
+            [indeterminate]="indeterminateNodeSet.has(node.item.id)"
+            [checked]="checkedNodeSet.has(node.item.id)"
+            [disabled]="node.item.isDraft"
+            (change)="onCheckNode(node, $event.checked)"></mat-checkbox>
+
+        <i
+            *ngIf="canDrag && node.item.id !== 0"
+            class="drag-handle las la-grip-lines"
+            (mousedown)="setDraggedNode($event, node)"
+            (mouseup)="unsetDraggedNode()"></i>
+
+        <ng-container [ngTemplateOutlet]="nodeTitleTemplate"
+                      [ngTemplateOutletContext]="{ node: node }"></ng-container>
+
+        <ng-container [ngTemplateOutlet]="addButtonTemplate ? addButtonTemplate : defaultAddButton"
+                      [ngTemplateOutletContext]="{ node: node }"></ng-container>
+
+        <i class="las la-trash cursor-pointer red"
+           *ngIf="canRemove"
+           (click)="onRemoveNode(node)"></i>
+    </div>
+</ng-template>
+
+<ng-template #defaultAddButton let-node="node">
+    <button *ngIf="canAdd"
+        class="icon-button"
+        [disabled]="hasDraftChildrenSet.has(node.item.id)"
+        (click)="onAddNode(node)">
+        <i class="las la-plus cursor-pointer blue f-s-20"></i>
+    </button>
+</ng-template>

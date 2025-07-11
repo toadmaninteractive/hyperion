@@ -1,0 +1,8 @@
+{application, access, [
+    {description, "Access control service"},
+    {vsn, "1.0.0"},
+    {modules, []},
+    {registered, []},
+    {applications, [kernel, stdlib, sasl, cerberus, db]},
+    {mod, {access_app, []}}
+]}.

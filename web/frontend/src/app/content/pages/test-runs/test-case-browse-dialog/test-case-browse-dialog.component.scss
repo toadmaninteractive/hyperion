@@ -1,0 +1,21 @@
+.tree-label {
+    line-height: 40px;
+}
+
+::ng-deep .mat-primary .mat-pseudo-checkbox-checked {
+    background: var(--primary) !important;
+}
+
+::ng-deep .mat-checkbox-indeterminate.mat-accent .mat-checkbox-background,
+.mat-checkbox-checked.mat-accent .mat-checkbox-background {
+    background: var(--primary) !important;
+}
+
+::ng-deep .m-badge-reds {
+    color: #ff8949;
+    width: 24px;
+}
+
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}

@@ -1,0 +1,160 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_parameter" hrl_file="protocol_parameter"]
+[ts file="parameter-protocol.data.ts"]
+module ParameterProtocol
+{
+    // Parameters
+    record CreateParameterRequest
+    {
+        ?long parent_id;
+        ?long dependent_id;
+        string title;
+    }
+
+    enum ParameterCreateError
+    {
+        project_not_exists;
+        parameter_already_exists;
+        parent_not_exists;
+        parent_is_independent;
+        parameter_source_already_exists;
+    }
+
+    record RenameParameterRequest
+    {
+        string new_title;
+    }
+
+    enum ParameterRenameError
+    {
+        parameter_not_exists;
+        title_already_exists;
+    }
+
+    enum ParameterDeleteError
+    {
+        parameter_not_exists;
+        has_children;
+        has_dependants;
+    }
+
+    // Parameter values
+    record AddParameterValueRequest
+    {
+        ?string dependent_value;
+        string value;
+    }
+
+    enum ParameterValueAddError
+    {
+        parameter_not_exists;
+        parameter_source_not_exists;
+        value_already_exists;
+        value_not_exists;
+        dependent_parameter_not_exists;
+        dependent_source_not_exists;
+        dependent_value_not_exists;
+    }
+
+    record RenameParameterValueRequest
+    {
+        string old_value;
+        string new_value;
+    }
+
+    enum ParameterValueRenameError
+    {
+        parameter_not_exists;
+        invalid_parameter;
+        value_not_exists;
+        value_already_exists;
+    }
+
+    record RemoveParameterValueRequest
+    {
+        ?string dependent_value;
+        string value;
+    }
+
+    enum ParameterValueRemoveError
+    {
+        parameter_not_exists;
+        value_not_exists;
+        linked_to_children;
+        linked_to_dependants;
+        dependent_parameter_not_exists;
+        dependent_source_not_exists;
+        dependent_value_not_exists;
+    }
+
+    [erlang http.server]
+    [ts http.client file="parameter-protocol.service.ts"]
+    webservice HyperionParameterService
+    {
+        // Parameters
+        [erlang http.handler="rest/generated/web_rest_parameters" http.callback="web_rest_callback_parameter"]
+        GetParameters => GET /api/parameters/project/{long project_id} ->
+            200: Collection<TreeNode<Parameter>>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_parameter" http.callback="web_rest_callback_parameter"]
+        GetParameter => GET /api/parameters/{long id} ->
+            200: Parameter,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_parameters" http.callback="web_rest_callback_parameter" http.cowboy_req]
+        CreateParameter => POST /api/parameters/project/{long project_id} CreateParameterRequest ->
+            200: Parameter,
+            400: BadRequestError<ParameterCreateError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_parameter" http.callback="web_rest_callback_parameter" http.cowboy_req]
+        RenameParameter => PUT /api/parameters/{long id} RenameParameterRequest ->
+            200: Parameter,
+            400: BadRequestError<ParameterRenameError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_parameter" http.callback="web_rest_callback_parameter" http.cowboy_req]
+        DeleteParameter => DELETE /api/parameters/{long id} ->
+            200: GenericResponse,
+            400: BadRequestError<ParameterDeleteError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Parameter values
+        [erlang http.handler="rest/generated/web_rest_parameter_value_add" http.callback="web_rest_callback_parameter" http.cowboy_req]
+        AddParameterValue => POST /api/parameters/{long id}/value/add AddParameterValueRequest ->
+            200: Parameter,
+            400: BadRequestError<ParameterValueAddError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_parameter_value_rename" http.callback="web_rest_callback_parameter" http.cowboy_req]
+        RenameParameterValue => PUT /api/parameters/{long id}/value/rename RenameParameterValueRequest ->
+            200: Parameter,
+            400: BadRequestError<ParameterValueRenameError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_parameter_value_remove" http.callback="web_rest_callback_parameter" http.cowboy_req]
+        RemoveParameterValue => PUT /api/parameters/{long id}/value/remove RemoveParameterValueRequest ->
+            200: Parameter,
+            400: BadRequestError<ParameterValueRemoveError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

@@ -1,0 +1,413 @@
+.padded {
+    margin-top: -30px;
+    margin-bottom: -30px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.non-sticky-block {
+    margin-left: -15px;
+    transition: background-color 125ms linear;
+}
+
+@media screen and (max-height: 1100px) {
+    .sticky-block-parent {
+        box-shadow: -5px 0 5px -5px rgba(51, 51, 51, .25), 0px 0px 5px 0px rgba(51, 51, 51, .25);
+        padding-right: 0;
+        border: 1px solid #ffffff;
+        position: sticky;
+        top: 100px;
+        height: 80vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin-top: -28px;
+    }
+}
+
+@media screen and (max-height: 900px) {
+    .sticky-block-parent {
+        box-shadow: -5px 0 5px -5px rgba(51, 51, 51, .25), 0px 0px 5px 0px rgba(51, 51, 51, .25);
+        padding-right: 0;
+        border: 1px solid #ffffff;
+        position: sticky;
+        top: 100px;
+        height: 540px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin-top: -28px;
+    }
+}
+
+.sticky-block {
+    display: block;
+    position: sticky;
+    z-index: 100;
+}
+
+.sticky-row {
+    margin-right: -30px;
+}
+
+.progress {
+    width: 60%;
+}
+
+.progress-bar-in-progress {
+    background-color: var(--info);
+}
+
+.progress-bar-passed {
+    background-color: var(--success);
+}
+
+.progress-bar-failed {
+    background-color: var(--danger);
+}
+
+.progress-bar-blocked {
+    background-color: var(--warning);
+}
+
+::ng-deep .mat-list-item-content {
+    cursor: pointer;
+}
+
+.item-selected {
+    border-bottom: var(--info) 1px dashed;
+}
+
+.m-badge-item-text {
+    line-height: 31px;
+    vertical-align: middle;
+}
+
+.test-run-item-selected {
+    border: var(--info) 1px dashed;
+    border-radius: 3px;
+}
+
+.btn {
+    padding: 8px 12px !important;
+}
+
+.btn-status {
+    font-size: 1rem !important;
+}
+
+.mat-list-item {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    margin-bottom: 2px;
+
+    ::ng-deep .mat-list-item-content {
+        padding-left: 0 !important;
+        //padding-right: 0 !important;
+    }
+}
+
+.mat-checkbox.no-ripple {
+    ::ng-deep .mat-ripple-element {
+        background: transparent !important;
+    }
+}
+
+.x-line {
+    &.pending {
+        background-color: rgba(212, 213, 230, .25);
+
+        &.active {
+            background-color: rgba(212, 213, 230, .75);
+        }
+    }
+
+    &.in-progress {
+        background-color: rgba(54, 163, 247, .25);
+
+        &.active {
+            background-color: rgba(54, 163, 247, .75);
+        }
+    }
+
+    &.passed {
+        background-color: rgba(52, 191, 163, .25);
+
+        &.active {
+            background-color: rgba(52, 191, 163, .75);
+        }
+    }
+
+    &.failed {
+        background-color: rgba(244, 81, 108, .25);
+
+        &.active {
+            background-color: rgba(244, 81, 108, .75);
+        }
+    }
+
+    &.blocked {
+        background-color: rgba(255, 184, 34, .25);
+
+        &.active {
+            background-color: rgba(255, 184, 34, .75);
+        }
+    }
+}
+
+.m-timeline-3 .m-timeline-3__item {
+    margin-bottom: 0;
+}
+
+.m-timeline-3 .m-timeline-3_full_height .m-timeline-3__item:before {
+    top: 3px !important;
+    height: 80% !important;
+}
+
+.mat-list-base {
+    padding-top: 0 !important;
+}
+
+.mat-list-base .mat-list-item {
+    height: unset !important;
+}
+
+@keyframes circle {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.progress-percent {
+    text-align: center;
+    top: -60%;
+    z-index: 500;
+    display: block;
+    position: relative;
+    font-size: 16px;
+}
+
+.progress-container {
+    display: inline-block;
+    color: #0782d0;
+    width: 100px !important;
+    height: 100px !important;
+    border: 1px solid rgba(7, 130, 208, 0.25) !important;
+    border-radius: 8px !important;
+    transition: .125s all linear;
+}
+
+.mat-select {
+    display: inline-block;
+    width: 20%;
+    outline: 0;
+    margin-bottom: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 0 0 .25rem .25rem;
+    padding: 3px;
+}
+
+.select-title {
+    width: 20%;
+    text-align: center;
+    background-color: FloralWhite;
+    border: 1px solid #ced4da;
+    border-bottom: none;
+    border-radius: .25rem .25rem 0 0;
+    padding: 3px;
+}
+
+/* Base for label styling */
+::ng-deep [type="checkbox"]:not(:checked),
+::ng-deep [type="checkbox"]:checked {
+    position: absolute;
+    left: -9999px;
+    margin-left: 20px;
+}
+
+::ng-deep [type="checkbox"]:not(:checked) + label,
+::ng-deep [type="checkbox"]:checked + label {
+    position: relative;
+    padding-left: 1.95em;
+    cursor: pointer;
+    margin-right: 15px;
+    padding-top: 3px;
+}
+
+/* checkbox aspect */
+::ng-deep [type="checkbox"]:not(:checked) + label.all:before,
+::ng-deep [type="checkbox"]:checked + label.all:before {
+    content: '';
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 4px;
+    background-color: rgba(212, 213, 230, .75);
+    border: 1px solid rgba(212, 213, 230, 1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+::ng-deep [type="checkbox"]:not(:checked) + label.pending:before,
+::ng-deep [type="checkbox"]:checked + label.pending:before {
+    content: '';
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 4px;
+    background-color: rgba(212, 213, 230, .75);
+    border: 1px solid rgba(212, 213, 230, 1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+::ng-deep [type="checkbox"]:not(:checked) + label.in-progress:before,
+::ng-deep [type="checkbox"]:checked + label.in-progress:before {
+    content: '';
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    border: 1px solid rgba(212, 213, 230, 1);
+    border-radius: 4px;
+    background-color: rgba(54, 163, 247, .75);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+::ng-deep [type="checkbox"]:not(:checked) + label.passed:before,
+::ng-deep [type="checkbox"]:checked + label.passed:before {
+    content: '';
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 4px;
+    background-color: rgba(52, 191, 163, .75);
+    border: 1px solid rgba(52, 191, 163, 1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+::ng-deep [type="checkbox"]:not(:checked) + label.failed:before,
+::ng-deep [type="checkbox"]:checked + label.failed:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    font-weight: 600;
+    border-radius: 4px;
+    background-color: rgba(244, 81, 108, .75);
+    border: 1px solid rgba(244, 81, 108, 1);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+::ng-deep [type="checkbox"]:not(:checked) + label.blocked:before,
+::ng-deep [type="checkbox"]:checked + label.blocked:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.5em;
+    height: 1.5em;
+    font-weight: 600;
+    background-color: rgba(255, 184, 34, .75);
+    border: 1px solid rgba(255, 184, 34, 1);
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .1);
+    vertical-align: middle;
+}
+
+.legend-item {
+    font-weight: 500;
+}
+
+/* checked mark aspect */
+::ng-deep [type="checkbox"]:not(:checked) + label:after,
+::ng-deep [type="checkbox"]:checked + label:after {
+    /*content: '\2713\0020';*/
+    position: absolute;
+    top: .18em;
+    left: .18em;
+    font-size: 1.5em;
+    font-weight: 600;
+    line-height: 0.8;
+    color: #010603;
+    transition: all .2s;
+    font-family: 'Lucida Sans Unicode', 'Arial Unicode MS', Arial;
+    vertical-align: middle;
+}
+
+/* checked mark aspect changes */
+::ng-deep [type="checkbox"]:not(:checked) + label:after {
+    opacity: 0;
+    transform: scale(0);
+}
+
+::ng-deep [type="checkbox"]:checked + label:after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* disabled checkbox */
+::ng-deep [type="checkbox"]:disabled:not(:checked) + label:before,
+::ng-deep [type="checkbox"]:disabled:checked + label:before {
+    box-shadow: none;
+    border-color: #bbb;
+    background-color: #ddd;
+}
+
+::ng-deep [type="checkbox"]:disabled:checked + label:after {
+    color: #999;
+}
+
+::ng-deep [type="checkbox"]:disabled + label {
+    color: #aaa;
+}
+
+.filter-border {
+    box-shadow: -5px 0 5px -5px rgba(51, 51, 51, 0.25), 0px 0px 5px 0px rgba(51, 51, 51, 0.25);
+    padding-right: 0;
+    border: 1px solid #ababab;
+}
+
+.action-bar-button {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-bottom: 10px;
+}
+
+.progress-bar-position {
+    position: relative;
+    top: -5px;
+}
+
+.va-mid {
+    vertical-align: middle;
+}
+
+.scroll-bar {
+    padding: 5px;
+}
+
+.setup-section{
+    display: flex;
+    align-items: center;
+}
+
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}
+
+.line-vertical{
+    background: rgba(255, 184, 34, 0.3);
+}

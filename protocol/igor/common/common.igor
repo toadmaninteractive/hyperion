@@ -1,0 +1,18 @@
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_common" hrl_file="protocol_common"]
+[ts file="common-protocol.data.ts"]
+module CommonProtocol
+{
+    [erlang alias="iso8601:date" json.packer="web_types:date_to_text" json.parser="web_types:date_from_text" string.packer="web_types:date_to_text" string.parser="web_types:date_from_text"]
+    [ts alias="Date" json.serializer="Igor.Json.DateSerializer"]
+    define Date string;
+
+    [erlang alias="iso8601:datetimems" json.packer="web_types:datetime_to_text" json.parser="web_types:datetime_from_text" string.packer="web_types:datetime_to_text" string.parser="web_types:datetime_from_text"]
+    [ts alias="Date" json.serializer="Igor.Json.DateTimeSerializer"]
+    [schema editor=datetime]
+    define DateTime string;
+
+    record Empty
+    {
+    }
+}

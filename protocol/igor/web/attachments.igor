@@ -1,0 +1,58 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_attachment" hrl_file="protocol_attachment"]
+[ts file="attachment-protocol.data.ts"]
+module AttachmentProtocol
+{
+    // File attachments
+    enum FileAttachmentOrderBy
+    {
+        id;
+        file_size;
+        original_filename;
+        content_type;
+        personnel_id;
+        personnel_name;
+        created_at;
+    }
+
+    [erlang http.server]
+    [ts http.client file="attachment-protocol.service.ts"]
+    webservice HyperionAttachmentService
+    {
+        // Managing attachments
+        [erlang http.handler="rest/generated/web_rest_attachments_project" http.callback="web_rest_callback_attachment"]
+        GetProjectAttachments => GET /api/attachments/project/{long project_id}
+            ?order_by={FileAttachmentOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={long offset}
+            &limit={long limit}
+            &needle={?string needle} ->
+            200: CollectionSlice<FileAttachment>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_attachments" http.callback="web_rest_callback_attachment"]
+        GetLinkedAttachments => GET /api/attachments/{AttachmentOwner owner}/{long linked_id} ->
+            200: Collection<FileAttachment>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_attachment_unlink" http.callback="web_rest_callback_attachment" http.cowboy_req]
+        DeleteAttachmentLink => DELETE /api/attachments/{long id}/{AttachmentOwner owner}/{long linked_id} ->
+            200: GenericResponse,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_attachment_links" http.callback="web_rest_callback_attachment"]
+        GetAttachmentLinks => GET /api/attachments/{long id}/links ->
+            200: Collection<FileAttachmentLink>,
+            403: ForbiddenError,
+            500: InternalServerError;
+    }
+}

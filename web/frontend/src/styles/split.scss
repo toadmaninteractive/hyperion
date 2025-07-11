@@ -1,0 +1,17 @@
+.left-split-content {
+    height: 72vh;
+    padding-right: 3px;
+}
+
+.right-split-content {
+    height: 72vh;
+}
+
+.as-split-gutter {
+    height: 72vh !important;
+    flex-basis: 6px !important;
+    :hover {
+        background-color: #ddd;
+        transition: background-color 125ms linear;
+    }
+}

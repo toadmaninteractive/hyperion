@@ -1,0 +1,117 @@
+.m-card .m-section, .m-card .m-section__content {
+    height: 100%;
+}
+
+.m-card .m-mat-card {
+    border-radius: 2px;
+    -webkit-box-shadow: 0 1px 15px 1px rgba(69, 65, 78, .08);
+    -moz-box-shadow: 0 1px 15px 1px rgba(69, 65, 78, .08);
+    box-shadow: 0 1px 15px 1px rgba(69, 65, 78, .08);
+    background-color: #fff;
+    padding: 15px 10px 5px 20px;
+    min-height: 125px;
+}
+
+.m-card .m-card-content {
+    font-size: 3.4em;
+    font-weight: bold;
+    font-family: 'Miriam Libre', sans-serif;
+}
+
+.m-card-prev-value {
+    font-size: 1rem;
+    font-weight: bold;
+    font-family: 'Miriam Libre', sans-serif;
+}
+
+.m-card .m-portlet__nav {
+    display: inline-block;
+    margin-left: 5px
+}
+
+.m-card .card-title {
+    font-family: 'Capriola', sans-serif;
+    color: #3F4047;
+}
+
+.m-card .mat-card-content {
+    margin-bottom: 5px !important;
+}
+
+.m-card .hint-icon {
+    font-size: 2rem;
+    font-weight: 600;
+    vertical-align: text-bottom;
+}
+
+.desc-grey {
+    color: #9699a2;
+    font-size: 1.5em;
+}
+
+.m-card .dummy-placeholder {
+    text-align: center;
+    font-size: 3em;
+    color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-self: center;
+    height: 100%;
+}
+
+.m-btn-disabled {
+    cursor: auto !important;
+    pointer-events: none;
+}
+
+.m-button-datapicker {
+    font-family: 'Capriola', sans-serif;
+    margin-top: -12px;
+    margin-right: 5px;
+}
+
+.m-button-part-year {
+    min-width: 100px;
+}
+
+.la {
+    font-family: 'LineAwesome', serif !important;
+}
+
+.m-card-error {
+    background-color: #FFF0F0;
+    color: #FF0000;
+    border: #FFD6D6 1px solid;
+}
+
+.m-card-warning {
+    background-color: #FFFBE5;
+    color: #998355;
+    border: #FFF8d8 1px solid;
+}
+
+.m-card-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: #c3e6cb 1px solid;
+}
+
+.card.blank {
+    height: 100%;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+    position: relative;
+
+    &.table-row {
+        height: 48px;
+        line-height: 48px;
+    }
+
+    .inner-text {
+        width: 100%;
+        text-align: center;
+        vertical-align: middle;
+        font-family: Roboto, "Helvetica Neue", sans-serif;
+    }
+}

@@ -1,0 +1,45 @@
+.m-timeline-2 {
+    font-family: 'Capriola', sans-serif;
+    color: #3F4047 !important;
+}
+
+.m-timeline-2:before {
+    left: 8.38rem;
+}
+
+.m-timeline-2__item {
+    margin-top: 25px;
+}
+
+.m-timeline-2__item-time {
+    font-family: 'Miriam Libre', sans-serif;
+    color: #3F4047 !important;
+}
+
+.m-timeline-2__item-text{
+    font-family: 'Capriola', sans-serif;
+    color: #3F4047 !important;
+    padding-left: 1.5rem !important;
+    padding-top: 0.65rem;
+}
+
+.m-timeline-2 .m-timeline-2__items .m-timeline-2__item .m-timeline-2__item-cricle {
+    top: 0.6rem;
+    left: 0.6rem;
+    margin:  0 0 0 7rem;
+    color: #3F4047 !important;
+    border-color: #f2f3f8;
+}
+
+.m-timeline-2 .m-timeline-2__items .m-timeline-2__item .m-timeline-2__item-cricle > i {
+    font-size: 1.78rem;
+    font-weight: 600;
+    top: -0.88rem;
+    left: -0.88rem;
+}
+/*
+.m-timeline-2 .m-timeline-2__items .m-timeline-2__item .m-timeline-2__item-time {
+    padding-top: 0.36rem;
+}*/
+
+i.animated { transition: all 125ms linear; }

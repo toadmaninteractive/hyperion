@@ -1,0 +1,345 @@
+<mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="addDraftTreeNode(true)">
+        <mat-icon>perm_data_setting</mat-icon>
+        <span>Add dependent parameter</span>
+    </button>
+
+    <button mat-menu-item (click)="addDraftTreeNode(false)">
+        <mat-icon>settings_applications</mat-icon>
+        <span>Add parameter</span>
+    </button>
+</mat-menu>
+
+<div class="m-portlet mb-0">
+    <div class="m-portlet__head compact align-items-center">
+        <div class="d-inline-flex">
+            <div>
+                <button
+                    mat-raised-button
+                    color="primary"
+                    (click)="addDraftTreeNode(null)"
+                    [disabled]="treeNodeHasDraftChildren(null)">
+                    Add parameter
+                </button>
+            </div>
+
+            <div class="ml-2 m-button-group">
+                <button mat-raised-button (click)="collapseAllTreeNodes()">Collapse</button>
+                <button mat-raised-button (click)="expandAllTreeNodes()">Expand</button>
+            </div>
+        </div>
+
+        <div class="m-portlet__head-tools">
+            <ul class="m-portlet__nav">
+                <li>
+                    <div class="pr-2">
+                        <mat-form-field floatLabel="never" style="width: 300px">
+                            <input
+                                matInput placeholder="Type to filter..."
+                                (keyup)="applyFilter($event.target.value)">
+                        </mat-form-field>
+                    </div>
+                </li>
+
+                <li class="m-portlet__nav-item">
+                    <a
+                        href="javascript:void(null);"
+                        class="m-portlet__nav-link m-portlet__nav-link--icon"
+                        title="Refresh"
+                        matTooltip="Click to refresh"
+                        matTooltipPosition="above"
+                        (click)="refresh()">
+                        <i class="las la-sync-alt"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="d-flex">
+        <as-split unit="percent" direction="horizontal">
+            <as-split-area [size]="activeNode ? 70 : 100">
+                <div
+                    [class.darken]='activeNode'
+                    class="pt-2 col-12 left-split-content">
+                    <perfect-scrollbar style="height: 70vh">
+                        <m-dynamic-tree-map
+                            [inputNodes$]="parameterService.parameterTree$"
+                            [flatNodes]="parameterService.flatParameter$ | async"
+                            [hiddenNodeSet]="hiddenNodeSetId"
+                            [dimmedNodeSet]="dimmedNodeSetId"
+                            [canDrag]="false"
+                            (nodeAdded)="addDraftTreeNode($event)"
+                            (nodeRemoved)="deleteParameter($event)"
+                            (treeRendered)="afterTreeRendered($event)"
+                            (nodeModified)="updateAfterDrop($event)">
+                            <ng-template #nodeTitleTemplate let-node="node">
+                                <input
+                                    type="text"
+                                    id="input-parameter-{{ node.item.id }}"
+                                    class="monospace new-in-place"
+                                    style="max-width: 100ch !important; padding-left: 5px !important;"
+                                    [class.changed]="node.item.id === 0 || (pristineItemMap.get(node.item.id) && node.item.title !== pristineItemMap.get(node.item.id).title)"
+                                    [class.draft]="node.item.isDraft"
+                                    [class.m-selected]="activeNode && node.item.id === activeNode.item.id"
+                                    [style.width.ch]="node.item.title.length ? node.item.title.length + 2 : 15"
+                                    [placeholder]="node.item.title.length === 0 ? 'Setup step title' : null"
+                                    [(ngModel)]="node.item.title"
+                                    (click)="node.item.id > 0 ? setActiveTreeNode(node) : null;"
+                                    (keyup.escape)="revertTreeNode(node); $event.target.blur()"
+                                    (keyup.enter)="$event.target.blur()"
+                                    (blur)="invalidateTreeNode(node, node.item.id === 0 ? null : 'title', $event.target.value);">
+                            </ng-template>
+                            <ng-template #addButtonTemplate let-node="node">
+                                <button
+                                    class="icon-button"
+                                    color="primary"
+                                    matTooltip="Click to add a child"
+                                    matTooltipPosition="above"
+                                    *ngIf="node.item.id > 0"
+                                    [matMenuTriggerFor]="menu"
+                                    (click)="node.expanded = true; parentNodeId = node.item.id"
+                                    [disabled]="treeNodeHasDraftChildren(node)">
+                                    <i class="las la-plus cursor-pointer blue f-s-20"></i>
+                                </button>
+                            </ng-template>
+                        </m-dynamic-tree-map>
+                        </perfect-scrollbar>
+                </div>
+            </as-split-area>
+
+            <as-split-area [size]="activeNode ? 30 : 0" *ngIf="activeNode && !createdState">
+                <div class="col right-split-content" style="margin-top: 15px">
+                    <perfect-scrollbar style="height: 70vh">
+                        <div class="sticky-block">
+                            <div class="title-container">
+                                <input
+                                    matInput
+                                    type="text"
+                                    class="inline-block f-w-600"
+                                    style="max-width: 65%"
+                                    [class.changed]="treeNodeChanged(activeNode, 'title')"
+                                    [placeholder]="activeNode.item.title.length === 0 ? 'Parameter title' : null"
+                                    [(ngModel)]="activeNode.item.title"
+                                    (keyup.escape)="revertTreeNodeTitle(activeNode); $event.target.blur()"
+                                    (keyup.enter)="$event.target.blur()"
+                                    (blur)="invalidateTreeNode(activeNode, 'title')">
+
+                                <div class="block text-right" style="width: 35%">
+                                    <div class="" (click)="resetActiveTreeNode()">
+                                        <i class="las la-times cursor-pointer"></i>
+                                    </div>
+                                </div>
+
+                                <div class="block text-left" *ngIf="activeNode.item.id">
+                                        <span class="sticky-id dimmed">
+                                            #{{ activeNode.item.id }}
+                                        </span>
+                                </div>
+                            </div>
+
+                            <ul class="basic-tree pl-0">
+                                <li *ngIf="!activeNode.item.parentId && !createdState">
+                                    <label class="f-w-600 block">Values</label>
+                                    <div *ngFor="let item of activeNode.item.values; index as stepIndex">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <input class="param-value-input"
+                                                       id="lov{{stepIndex}}"
+                                                       (blur)="saveListValues($event, stepIndex)"
+                                                       (keyup.enter)="saveListValues($event, stepIndex)"
+                                                       [ngModel]="item.value ? item.value : null"
+                                                       type="text">
+                                                <div class="input-border"></div>
+                                            </div>
+                                            <button
+                                                class="param-val-del-btn mat-icon-button"
+                                                style="height: 20px; width: 20px;"
+                                                color="warn"
+                                                matTooltip="Click to delete"
+                                                matTooltipPosition="above"
+                                                (keydown.enter)="addListValue()"
+                                                (click)="deleteValue(stepIndex)">
+                                                <mat-icon class="c-error c-f-s-24">
+                                                    delete
+                                                </mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="param-select-wrapper">
+                                        <div class="param-select">
+                                            <mat-icon class="param-add-icon c-success f-w-600">
+                                                add
+                                            </mat-icon>
+                                            <a
+                                                href="javascript:void(null)"
+                                                class="f-w-400"
+                                                (keyup.enter)="$event.target.blur()"
+                                                (keydown.enter)="addListValue()"
+                                                (click)="addListValue()">
+                                                Add value
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li
+                                    *ngIf="activeNode.item.parentId !== null && parameterized || activeNode.item.dependentId">
+                                    <label class="f-w-600 block">
+                                        Dependent parameter:
+                                        <span *ngIf="!parameterized" class="button-link-add-dis">
+                                                    {{ pristineItemMap.get(activeNode.item.dependentId).title }}
+                                                </span>
+                                    </label>
+
+                                    <span
+                                        class="f-s-16"
+                                        *ngIf="!createdState"
+                                        (click)="filterDepValuesCollapse()">
+                                                {{ filterDepParameter.size !== 0 ? 'Expand all' : 'Collapse all' }}
+                                            </span>
+
+                                    <button
+                                        mat-icon-button
+                                        color="primary"
+                                        (click)="filterDepValuesCollapse()">
+                                        <mat-icon
+                                            *ngIf="!createdState"
+                                            class="f-s-16">
+                                            {{ filterDepParameter.size !== 0 ? 'expand_more' : 'expand_less' }}
+                                        </mat-icon>
+                                    </button>
+
+                                    <div class="mt-3"
+                                         *ngIf="activeNode.item.parentId && activeNode.item.dependentId === null && !createdState">
+                                        <label class="f-w-600 block">Values
+                                            <button
+                                                mat-icon-button
+                                                color="primary"
+                                                (click)="filterValueChecked()">
+                                                <mat-icon
+                                                    class="f-s-16">{{ filterParameter ? 'expand_less' : 'expand_more' }}
+                                                </mat-icon>
+                                            </button>
+                                        </label>
+
+                                        <div *ngFor="let item of filteredListOfValues; index as stepIndex">
+                                            <div class="inline-block">
+                                                <mat-checkbox
+                                                    color="primary"
+                                                    [checked]="checkedListOfValue(item)"
+                                                    (change)="checkUncheckParameterValue(item)">
+                                                    <input
+                                                        class="input-check-box"
+                                                        [ngModel]="item"
+                                                        matInput
+                                                        type="text">
+                                                </mat-checkbox>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="mt-1"
+                                        *ngIf="activeNode.item.parentId && activeNode.item.dependentId">
+                                        <div *ngFor="let depItem of dependentListOfValues; index as stepIndex">
+                                            <div class="inline-block">
+                                                <div class="inline-block">
+                                                        <span
+                                                            class="f-w-400 f-s-16 button-link-add"
+                                                            (click)="filterDepValuesChecked(depItem)">
+                                                            {{depItem}}
+                                                        </span>
+                                                    <button
+                                                        mat-icon-button
+                                                        color="primary"
+                                                        (click)="filterDepValuesChecked(depItem)">
+                                                        <mat-icon
+                                                            class="f-s-14">{{ filterDepParameter.has(depItem) ? 'expand_more' : 'expand_less' }}
+                                                        </mat-icon>
+                                                    </button>
+                                                </div>
+
+                                                <div
+                                                    *ngFor="let item of filteredDepListOfValues.get(depItem); index as stepIndex">
+                                                    <div class="inline-block">
+                                                        <mat-checkbox
+                                                            color="primary"
+                                                            [checked]="checkedDepListValues(item, depItem)"
+                                                            (change)="checkUncheckDepParameterValue(item, depItem)">
+                                                            <input
+                                                                class="input-check-box"
+                                                                [ngModel]="item"
+                                                                matInput
+                                                                type="text">
+                                                        </mat-checkbox>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li *ngIf="activeNode.item.dependentId === null && !createdState">
+                                    <div class="mt-3"
+                                         *ngIf="activeNode.item.parentId && activeNode.item.dependentId === null && !createdState">
+                                        <label class="f-w-600 block">Values
+                                            <button
+                                                mat-icon-button
+                                                color="primary"
+                                                (click)="filterValueChecked()">
+                                                <mat-icon
+                                                    class="f-s-16">{{ filterParameter ? 'expand_less' : 'expand_more' }}
+                                                </mat-icon>
+                                            </button>
+                                        </label>
+
+                                        <div *ngFor="let item of filteredListOfValues; index as stepIndex">
+                                            <div class="inline-block">
+                                                <mat-checkbox
+                                                    color="primary"
+                                                    [checked]="checkedListOfValue(item)"
+                                                    (change)="checkUncheckParameterValue(item)">
+                                                    <input
+                                                        class="input-check-box"
+                                                        [ngModel]="item"
+                                                        matInput
+                                                        type="text">
+                                                </mat-checkbox>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li *ngIf="!createdState">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="f-w-600 block">Created At</label>
+
+                                            <input
+                                                matInput
+                                                type="text"
+                                                class="form-control pl-0"
+                                                readonly
+                                                value="{{ activeNode.item.createdAt | date: 'yyyy-MM-dd HH:mm' }}">
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="f-w-600 block">Updated At</label>
+
+                                            <input
+                                                matInput
+                                                type="text"
+                                                class="form-control pl-0"
+                                                readonly
+                                                value="{{ activeNode.item.updatedAt | date: 'yyyy-MM-dd HH:mm' }}">
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </perfect-scrollbar>
+                </div>
+            </as-split-area>
+        </as-split>
+    </div>
+</div>

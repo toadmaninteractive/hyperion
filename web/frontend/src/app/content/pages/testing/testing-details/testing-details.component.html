@@ -1,0 +1,694 @@
+<div class="row">
+    <div class="col-xl-12 pre-wrapped">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="progress-bar-position">
+                <m-smart-progress-bar
+                    [rounded]="false"
+                    [height]="10"
+                    [total]="testRun.totalItemCount"
+                    [pending]="testRun.pendingItemCount"
+                    [inProgress]="testRun.inProgressItemCount"
+                    [passed]="testRun.passedItemCount"
+                    [failed]="testRun.failedItemCount"
+                    [blocked]="testRun.blockedItemCount">
+                </m-smart-progress-bar>
+            </div>
+
+            <div class="m-portlet__head p-0" *ngIf="testRun?.totalItemCount > 0">
+                <div class="m-portlet__head-caption full-width" style="flex-basis: 65%" *ngIf="(testRunItems$ | async).length > 0">
+                    <div class="m-portlet__head-title full-width block">
+                        <div class="full-width" style="display: table-row; padding-left: 20px">
+                            <div style="display: table-cell">
+                                <mat-checkbox
+                                    class="no-ripple"
+                                    color="primary"
+                                    [disableRipple]="true"
+                                    [indeterminate]="isBulkIndeterminate()"
+                                    [checked]="isBulkChecked()"
+                                    (change)="onBulkChange()"></mat-checkbox>
+                            </div>
+
+                            <div class="pl-3" style="display: table-cell">
+                                <button
+                                    mat-raised-button
+                                    color="primary"
+                                    [disabled]="!canPerformBulkActions()"
+                                    [matMenuTriggerFor]="bulkActionMenu">
+                                    Bulk actions
+                                </button>
+                            </div>
+
+                            <div class="pl-3" style="display: table-cell">
+                                <ng-container [ngTemplateOutlet]="filterButtons"></ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-caption full-width" style="flex-basis: 35%" *ngIf="(testRunItems$ | async).length > 0">
+                    <div class="m-portlet__head-title full-width block pr-4">
+                        <mat-form-field class="full-width">
+                            <input
+                                matInput
+                                type="text"
+                                placeholder="Type in to filter"
+                                autocomplete="off"
+                                [ngModel]="search$ | async"
+                                (ngModelChange)="search$.next($event)">
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex">
+                <as-split unit="percent" direction="horizontal">
+                    <as-split-area [size]="selectedTestItem ? 70 : 100">
+                        <div class="pt-2 col-12 left-split-content">
+                            <perfect-scrollbar style="height: 70vh">
+                                <div class="scroll-bar">
+                                    <mat-list *ngIf="(filteredTestRunItems$ | async).length > 0">
+                                        <mat-list-item *ngFor="let item of filteredTestRunItems$ | async">
+                                            <div class="block">
+                                                <mat-checkbox
+                                                    class="no-ripple"
+                                                    color="primary"
+                                                    [disableRipple]="true"
+                                                    [checked]="checkedSet.has(item.id)"
+                                                    (change)="checkedSet.has(item.id) ? checkedSet.delete(item.id) : checkedSet.add(item.id)"></mat-checkbox>
+                                            </div>
+
+                                            <div
+                                                class="full-width animate x-line pl-1 ml-2"
+                                                [class.active]="item === selectedTestItem"
+                                                [class.pending]="item.status === testStatusEnum.Pending"
+                                                [class.in-progress]="item.status === testStatusEnum.InProgress"
+                                                [class.passed]="item.status === testStatusEnum.Passed"
+                                                [class.failed]="item.status === testStatusEnum.Failed"
+                                                [class.blocked]="item.status === testStatusEnum.Blocked">
+                                                <div class="m-timeline-3 x-table" (click)="selectTestRunItem(item)">
+                                                    <div class="m-timeline-3__items">
+                                                        <div class="m-timeline-3_full_height">
+                                                            <div class="m-timeline-3__item ml-1" [ngClass]="badgeTestClass(item.status)">
+                                                                <div class="m-timeline-3__item-desc pl-2">
+                                                                    <span class="m-badge-item-text pl-1">
+                                                                        <span>{{ item.$parentTitle }}</span>
+                                                                            <span *ngIf="item.$parentTitle">
+                                                                                &rsaquo;
+                                                                            </span>
+                                                                        <strong>{{ item.$title }}</strong>
+                                                                    </span>
+
+                                                                    <span *ngIf="item.$param">
+                                                                        <span>: {{ item.$param }} </span>
+                                                                    </span>
+
+                                                                    <span class="m-badge-item-text ml-3" *ngIf="item.summary">
+                                                                        <span class="font-italic">
+                                                                            Failure reason: {{ item.summary }}
+                                                                        </span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </mat-list-item>
+                                    </mat-list>
+
+                                    <div [ngSwitch]="(testRunItems$ | async).length">
+                                        <ng-container *ngSwitchCase="0">
+                                            No tests are added
+                                        </ng-container>
+
+                                        <ng-container *ngSwitchDefault>
+                                            <ng-container *ngIf="(filteredTestRunItems$ | async).length === 0">
+                                                No tests match filter criteria
+                                            </ng-container>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </perfect-scrollbar>
+                        </div>
+                    </as-split-area>
+
+                    <as-split-area [size]="selectedTestItem ? 30 : 0" *ngIf="selectedTestItem">
+                        <div class="col pt-3 right-split-content">
+                            <perfect-scrollbar style="height: 70vh">
+                                <div class="sticky-block f-w-400">
+                                    <div class="inline-block">
+                                        <div class="d-table-cell" style="vertical-align: bottom">
+                                            <h5>{{ selectedTestItem.$title }}</h5>
+                                        </div>
+
+                                        <div class="m-timeline-3 x-table d-table-cell pl-2">
+                                            <div class="m-timeline-3__items">
+                                                <div class="m-timeline-3__item" [ngClass]="badgeTestClass(selectedTestItem.status)">
+                                                    <div class="m-timeline-3__item-desc pl-2">
+                                                        <div style="padding-top: -10px">
+                                                            <span class="m-badge-item-text pl-1">
+                                                                {{ testStatusText(selectedTestItem.status) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="inline-block v-a-bottom float-right" style="line-height: 32px">
+                                        <span class="dimmed">
+                                            #{{ selectedTestItem.id }}
+                                        </span>
+                                    </div>
+
+                                    <ul class="basic-tree pl-0">
+                                        <li class="mt-5" *ngIf="selectedTestCase.description">
+                                            <label class="f-w-600 block mb-0">Description</label>
+                                            <span [innerHTML]="selectedTestCase?.description"></span>
+                                        </li>
+
+                                        <li class="mt-3" *ngIf="selectedTestItemSetup?.length !== 0">
+                                            <label class="f-w-600 block">Setup</label>
+
+                                            <ng-container *ngIf="!selectedTestCase.setupId || !selectedTestCase.preconditionId">
+                                                <span *ngIf="selectedTestItemSetup?.length === 0 && selectedTestItemPrecondition?.length === 0">
+                                                    Not set
+                                                </span>
+
+                                                <span *ngIf="inheritedPreconditionTestCase || inheritedSetupTestCase">
+                                                    Inherited from
+                                                    <span *ngIf="inheritedPreconditionTestCase">
+                                                        <strong
+                                                            class="c-info">{{ inheritedPreconditionTestCase.title }}
+                                                        </strong>
+                                                    </span>
+
+                                                    <span *ngIf="inheritedPreconditionTestCase && inheritedSetupTestCase">
+                                                        &nbsp;and&nbsp;
+                                                    </span>
+
+                                                    <span *ngIf="inheritedSetupTestCase">
+                                                        <strong class="c-info">
+                                                            {{ inheritedSetupTestCase.title }}
+                                                        </strong>
+                                                    </span>
+                                                </span>
+                                            </ng-container>
+
+                                            <ul class="pl-0" *ngIf="selectedTestItemPrecondition?.length > 0">
+                                                <li *ngFor="let item of selectedTestItemPrecondition; let i = index">
+                                                    <div class="d-table-row">
+                                                        <div class="d-table-cell">
+                                                            <mat-icon class="c-info">
+                                                                subdirectory_arrow_right
+                                                            </mat-icon>
+                                                        </div>
+
+                                                        <div class="d-table-cell" *ngIf="item && item.title">
+                                                            <span class="inline-block medium-line align-text-bottom">
+                                                                {{ item.title }}
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="d-table-cell">
+                                                            <button
+                                                                class="btn-status warning m-left clickable xs ml-2"
+                                                                *ngIf="canPerformBlock(selectedTestItem?.status, testRun?.status)"
+                                                                [swal]="{
+                                                                    title: 'Confirmation',
+                                                                    html: 'Blocking setup step <b>'+ item.title + '</b>?<br><b>' + affectedCount(item.id) + '</b> test items would be blocked',
+                                                                    type: 'question',
+                                                                    confirmButtonText: 'Block',
+                                                                    confirmButtonColor: '#ffb822',
+                                                                    confirmButtonClass: 'btn-warning',
+                                                                    showCancelButton: true,
+                                                                    heightAuto: false
+                                                                }"
+                                                                (confirm)="blockTestRunItem(item.id)">
+                                                                Block
+                                                            </button>
+
+                                                            <span
+                                                                *ngIf="item && item.description"
+                                                                class="block medium-line"
+                                                                style="margin-left: 2rem">
+                                                                {{ item.description }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+
+                                            <ul class="pl-0" *ngIf="selectedTestItemSetup?.length > 0">
+                                                <li *ngFor="let item of selectedTestItemSetup; let i = index">
+                                                    <div
+                                                        *ngIf="selectedTestItem.params.specs.length > 0 && selectParamForTestItemSetup(item) !== null"
+                                                        [class.line-vertical]="selectedTestItem.status === testStatusEnum.Blocked
+                                                        && selectedTestItem.params.specs[selectParamForTestItemSetup(item)].setupId === selectedTestItem.failedSetupId">
+                                                            <div class="d-table-cell">
+                                                                <mat-icon class="c-info">
+                                                                    subdirectory_arrow_right
+                                                                </mat-icon>
+                                                            </div>
+
+                                                            <div class="d-table-cell" *ngIf="item && item.title">
+                                                            <span class="inline-block medium-line align-text-bottom">
+                                                                {{ item.title }}
+                                                            </span>
+                                                            </div>
+
+                                                            <div class="d-table-cell">
+                                                            <span
+                                                                *ngIf="item && item.description"
+                                                                class="block medium-line align-text-bottom"
+                                                                style="margin-left: 2rem">
+                                                                {{ item.description }}
+                                                            </span>
+                                                            </div>
+
+                                                            <div class="d-table-cell"
+                                                                 *ngIf="selectParamForTestItemSetup(item) !== null">
+                                                                <mat-icon class="c-gray m--valign-middle" style="margin-right: -5px">link</mat-icon>
+                                                            </div>
+
+                                                            <div class="d-table-cell"
+                                                                 *ngIf="selectParamForTestItemSetup(item) !== null">
+                                                            <span class="c-info medium-line align-text-bottom">
+                                                                [{{ selectedTestItem.params.specs[selectParamForTestItemSetup(item)].param}}]:
+                                                                {{ selectedTestItem.params.specs[selectParamForTestItemSetup(item)].value }}
+                                                            </span>
+                                                            </div>
+
+                                                            <div class="d-table-cell align-middle">
+                                                                <button
+                                                                    class="btn-status warning m-left clickable xs ml-2 align-text-bottom"
+                                                                    *ngIf="canPerformBlock(selectedTestItem?.status, testRun?.status)"
+                                                                    [swal]="{
+                                                                        title: 'Confirmation',
+                                                                        html: 'Blocking setup step <b>'+ item.title + '</b>?<br><b>' + affectedCount(item.id) + '</b> test items would be blocked',
+                                                                        type: 'question',
+                                                                        confirmButtonText: 'Block',
+                                                                        confirmButtonColor: '#ffb822',
+                                                                        confirmButtonClass: 'btn-warning',
+                                                                        showCancelButton: true,
+                                                                        heightAuto: false
+                                                                    }"
+                                                                    (confirm)="blockTestRunItem(item.id)">
+                                                                    Block
+                                                                </button>
+                                                            </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="d-table-row"
+                                                        *ngIf="selectedTestItem.params.specs.length === 0 || selectParamForTestItemSetup(item) === null"
+                                                        [class.line-vertical]="item.id === selectedTestItem.failedSetupId">
+                                                        <div class="d-table-cell">
+                                                            <mat-icon class="c-info">subdirectory_arrow_right</mat-icon>
+                                                        </div>
+
+                                                        <div class="d-table-cell">
+                                                            <span class="inline-block medium-line align-text-bottom">
+                                                                {{ item.title }}
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="d-table-cell align-middle">
+                                                            <button
+                                                                class="btn-status warning m-left clickable xs ml-2 align-text-bottom"
+                                                                *ngIf="canPerformBlock(selectedTestItem?.status, testRun?.status)"
+                                                                [swal]="{
+                                                                    title: 'Confirmation',
+                                                                    html: 'Blocking setup step <b>'+ item.title + '</b>?<br><b>' + affectedCount(item.id) + '</b> test items would be blocked',
+                                                                    type: 'question',
+                                                                    confirmButtonText: 'Block',
+                                                                    confirmButtonColor: '#ffb822',
+                                                                    confirmButtonClass: 'btn-warning',
+                                                                    showCancelButton: true,
+                                                                    heightAuto: false
+                                                                }"
+                                                                (confirm)="blockTestRunItem(item.id)">
+                                                                Block
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </li>
+
+                                        <li class="mt-3" *ngIf="selectedTestCase.testSteps">
+                                            <label class="f-w-600 block">Test steps</label>
+                                            <span [innerHTML]="selectedTestCase?.testSteps"></span>
+                                        </li>
+
+                                        <li class="mt-3" *ngIf="selectedTestCase.expectedResult">
+                                            <label class="f-w-600 block">Expected result</label>
+                                            <span [innerHTML]="selectedTestCase?.expectedResult"></span>
+                                        </li>
+
+                                        <li class="mt-3" *ngIf="selectedTestItem.status !== testStatusEnum.Passed">
+                                            <label class="f-w-600 block">Failure reason</label>
+
+                                            <textarea
+                                                matInput
+                                                cdkTextareaAutosize
+                                                cdkAutosizeMinRows="2"
+                                                cdkAutosizeMaxRows="4"
+                                                class="form-control"
+                                                placeholder="Put some text here"
+                                                [(ngModel)]="selectedTestItem.summary"
+                                                (keyup.escape)="revertTestRunItem()"
+                                                (blur)="maybeUpdateTestRunItem()">
+                                            </textarea>
+
+                                            <!-- Hack to load mat-form-field styles -->
+                                            <mat-form-field floatLabel="never" style="display: none">
+                                                <input matInput/>
+                                            </mat-form-field>
+                                        </li>
+
+                                        <li class="mt-3"
+                                            *ngIf="selectedTestItem.reporterName || selectedTestItem.assigneeName">
+                                            <div class="row">
+                                                <div class="col-md-6" *ngIf="selectedTestItem.reporterName">
+                                                    <label class="f-w-600 block mb-0">Created By</label>
+                                                    <strong class="c-info">{{ selectedTestItem.reporterName }}</strong>
+                                                </div>
+
+                                                <div class="col-md-6" *ngIf="selectedTestItem.assigneeName">
+                                                    <label class="f-w-600 block mb-0">Assigned To</label>
+                                                    <strong class="c-info">{{ selectedTestItem.assigneeName }}</strong>
+                                                </div>
+                                            </div>
+                                        </li>
+
+                                        <li class="mt-3">
+                                            <div class="row">
+                                                <ng-container [ngSwitch]="selectedTestItem.status">
+                                                    <div class="col-md-6" *ngSwitchCase="testStatusEnum.Pending">
+                                                        <label class="f-w-600 block mb-0">Created At</label>
+                                                        {{ selectedTestItem.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                                                    </div>
+
+                                                    <div class="col-md-6" *ngIf="selectedTestItem.status !== testStatusEnum.Pending && selectedTestItem.startedAt">
+                                                        <label class="f-w-600 block mb-0">Started At</label>
+                                                        {{ selectedTestItem.startedAt | date: 'yyyy-MM-dd HH:mm' }}
+                                                    </div>
+
+                                                    <div class="col-md-6" *ngSwitchCase="testStatusEnum.Passed">
+                                                        <label class="f-w-600 block mb-0">Passed At</label>
+                                                        {{ selectedTestItem.finishedAt | date: 'yyyy-MM-dd HH:mm' }}
+                                                    </div>
+
+                                                    <div class="col-md-6" *ngSwitchCase="testStatusEnum.Failed">
+                                                        <label class="f-w-600 block mb-0">Failed At</label>
+                                                        {{ selectedTestItem.finishedAt | date: 'yyyy-MM-dd HH:mm' }}
+                                                    </div>
+
+                                                    <div class="col-md-6" *ngSwitchCase="testStatusEnum.Blocked">
+                                                        <label class="f-w-600 block mb-0">Blocked At</label>
+                                                        {{ selectedTestItem.finishedAt | date: 'yyyy-MM-dd HH:mm' }}
+                                                    </div>
+                                                </ng-container>
+                                            </div>
+                                        </li>
+
+                                        <li class="mt-3">
+                                            <div class="row">
+                                                <div class="col-md-12 mini">
+                                                    <label class="f-w-600 block mb-0">Attachments</label>
+
+                                                    <div class="row">
+                                                        <div class="col-md-12 mt-1" style="display:flex;flex-wrap: wrap;">
+                                                            <ng-container *ngIf="activeFileAttachments?.length > 0">
+                                                                <ng-container
+                                                                    [ngTemplateOutlet]="(activeFileAttachments?.length > 3 && showMoreAttachments) ? moreAttachments : lessAttachments">
+                                                                </ng-container>
+                                                            </ng-container>
+
+                                                            <ng-container
+                                                                [ngTemplateOutlet]="activeFileAttachments?.length === 0 ? uploadButton: null"></ng-container>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+
+                                        <li class="mt-3" [ngSwitch]="!!selectedTestItem.jiraIssueKey">
+                                            <div class="row">
+                                                <div class="col-md-12 mini mb-1">
+                                                    <label class="f-w-600 block mb-0">JIRA</label>
+                                                </div>
+                                            </div>
+
+                                            <ng-container *ngSwitchCase="true">
+                                                <a [href]="selectedTestItem.jiraIssueUrl" target="_blank">
+                                                    <span class="m-badge x-tag compact align-text-top m-badge--danger">
+                                                        {{ selectedTestItem.jiraIssueKey }}
+                                                    </span>
+                                                </a>
+                                            </ng-container>
+
+                                            <ng-container *ngSwitchCase="false">
+                                                <ng-container [ngSwitch]="canPerformBlock(selectedTestItem?.status, testRun?.status)">
+                                                    <ng-container *ngSwitchCase="true">
+                                                        <button
+                                                            class="btn-status clickable"
+                                                            (click)="authenticatedInJira ? openJiraIssueDialog() : openJiraAuthDialog()">
+                                                                <i class="mr-1">
+                                                                    <img src="./assets/app/media/img/tools/jira.png" class="x-table-icon x-16 v-a-sub">
+                                                                </i>
+
+                                                                <span>{{ authenticatedInJira ? 'Create issue' : 'Authenticate' }}</span>
+                                                        </button>
+                                                    </ng-container>
+
+                                                    <ng-container *ngSwitchCase="false">
+                                                        No linked issues
+                                                    </ng-container>
+                                                </ng-container>
+                                            </ng-container>
+                                        </li>
+
+                                        <li class="mt-3" *ngIf="testRun.status === testRunStatus.InProgress">
+                                            <div class="row">
+                                                <div class="col-md-12 mini mb-1">
+                                                    <label class="f-w-600 block mb-0">Actions</label>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                class="btn-status info m-left clickable sm mr-3"
+                                                *ngIf="selectedTestItem.status === testStatusEnum.Pending"
+                                                (click)="startTestRunItem(selectedTestItem.id)">
+                                                Start
+                                            </button>
+
+                                            <button
+                                                class="btn-status success m-left clickable sm mr-3"
+                                                *ngIf="!selectedTestItem.summary && (selectedTestItem.status === testStatusEnum.Pending
+                                                    || selectedTestItem.status === testStatusEnum.InProgress)"
+                                                (click)="passTestRunItem(selectedTestItem.id)">
+                                                Pass
+                                            </button>
+
+                                            <button
+                                                class="btn-status error m-left clickable sm mr-3"
+                                                *ngIf="selectedTestItem.status === testStatusEnum.Pending
+                                                    || selectedTestItem.status === testStatusEnum.InProgress"
+                                                (click)="failTestRunItem(selectedTestItem.id)">
+                                                Fail
+                                            </button>
+
+                                            <button
+                                                class="btn-status info m-left clickable sm mr-3"
+                                                *ngIf="selectedTestItem.status === testStatusEnum.Blocked
+                                                    || selectedTestItem.status === testStatusEnum.Failed
+                                                    || selectedTestItem.status === testStatusEnum.Passed"
+                                                (click)="reopenTestRunItem(selectedTestItem.id)">
+                                                Reopen
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </perfect-scrollbar>
+                        </div>
+                    </as-split-area>
+                </as-split>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #lessAttachments>
+    <div class="row m-0">
+        <ng-container *ngFor="let item of activeFileAttachments; let i = index">
+            <div
+                *ngIf="i < 3"
+                class="thumb mr-1 mb-1 inline-block animate clickable"
+                [matTooltip]="item.originalFilename"
+                matTooltipPosition="above">
+
+                <ng-container [ngSwitch]="!!item.thumbFilename">
+                    <img src="/download/attachments/{{ item.thumbFilename }}" (click)="openGallery(i)" *ngSwitchCase="true">
+
+                    <a href="/download/attachments/{{ item.filename }}" target="_blank" [ngSwitch]="!!item.thumbFilename">
+                        <div class="placeholder inline-block" *ngSwitchCase="false">File</div>
+                    </a>
+                </ng-container>
+
+                <div
+                    class="delete animate"
+                    (confirm)="unlinkFileAttachment(item.id, this.selectedTestItem.id)"
+                    [swal]="{
+                        title: 'Confirmation',
+                        html: 'Delete <b>'+ item.originalFilename + '</b>?',
+                        type: 'question',
+                        confirmButtonText: 'Delete',
+                        confirmButtonColor: '#f4516c',
+                        confirmButtonClass: 'btn-danger',
+                        showCancelButton: true,
+                        heightAuto: false
+                        }">
+                    <mat-icon class="animate c-white">clear</mat-icon>
+                </div>
+            </div>
+        </ng-container>
+
+        <div
+            class="attachment-count-container clickable mr-1 mb-1 animate"
+            *ngIf="activeFileAttachments?.length > 3"
+            (click)="showMoreAttachments = !showMoreAttachments">
+            <div class="attachment-count-label animate"> + {{ activeFileAttachments?.length - 3 }} </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="uploadButton"></ng-container>
+    </div>
+</ng-template>
+
+<ng-template #moreAttachments>
+    <div
+        class="thumb mr-1 mb-1 inline-block animate clickable"
+        *ngFor="let item of activeFileAttachments; let i = index"
+        [matTooltip]="item.originalFilename"
+        matTooltipPosition="above">
+        <ng-container [ngSwitch]="!!item.thumbFilename">
+            <img src="/download/attachments/{{ item.thumbFilename }}" (click)="openGallery(i)" *ngSwitchCase="true">
+
+            <a href="/download/attachments/{{ item.filename }}" target="_blank" [ngSwitch]="!!item.thumbFilename">
+                <div class="placeholder inline-block" *ngSwitchCase="false">File</div>
+            </a>
+        </ng-container>
+
+        <div
+            class="delete animate"
+            (confirm)="unlinkFileAttachment(item.id, this.selectedTestItem.id)"
+            [swal]="{
+                title: 'Confirmation',
+                html: 'Delete <b>'+ item.originalFilename + '</b>?',
+                type: 'question',
+                confirmButtonText: 'Delete',
+                confirmButtonColor: '#f4516c',
+                confirmButtonClass: 'btn-danger',
+                showCancelButton: true,
+                heightAuto: false
+                }">
+            <mat-icon class="animate c-white">clear</mat-icon>
+        </div>
+    </div>
+
+    <ng-container *ngTemplateOutlet="uploadButton"></ng-container>
+</ng-template>
+
+<ng-template #uploadButton>
+    <ng-container *ngFor="let item of attachmentsProgress | keyvalue">
+        <div class="progress-conteiner mr-1 mb-1" *ngIf="item.value | async">
+            <mat-progress-spinner
+                color="primary"
+                mode="determinate"
+                [value]="item.value | async">
+            </mat-progress-spinner>
+
+            <div class="progress-percent">{{ item.value | async }}%</div>
+        </div>
+    </ng-container>
+
+    <div class="uploader compact inline-block clickable mb-1">
+        <ngx-file-drop dropZoneLabel="Drop files here" (onFileDrop)="dropped($event)">
+            <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+                <button mat-icon-button color="primary" class="animate" (click)="openFileSelector()">
+                    <mat-icon class="animate">add</mat-icon>
+                </button>
+            </ng-template>
+        </ngx-file-drop>
+    </div>
+</ng-template>
+
+<ng-template #filterButtons>
+    <div>
+        <div class="inline-block legend-row-checked legend-row-height" style="line-height: 1; padding-left: 20px">
+            <!--
+            <button mat-button (click)="changeFilter(null)">
+                <mat-icon color="primary" [ngSwitch]="checkedFilter$ | async">
+                    <ng-container *ngSwitchCase="filterStatusEnum.Checked">check_box</ng-container>
+                    <ng-container *ngSwitchCase="filterStatusEnum.Unchecked">check_box_outline_blank</ng-container>
+                    <ng-container *ngSwitchCase="filterStatusEnum.Indeterminate">indeterminate_check_box</ng-container>
+                </mat-icon>
+                All
+            </button>
+            -->
+
+            <div class="inline-block va-mid">
+                <input type="checkbox" id="pending" [disabled]="!(testStatusFilters$ | async).has(typeFilterEnum.Pending)">
+                <label for="pending" class="legend-item pending" (click)="changeFilter(typeFilterEnum.Pending)">
+                    Pending
+                </label>
+            </div>
+
+            <div class="inline-block va-mid">
+                <input type="checkbox" id="inprogress" [disabled]="!(testStatusFilters$ | async).has(typeFilterEnum.InProgress)">
+                <label for="inprogress" class="legend-item in-progress" (click)="changeFilter(typeFilterEnum.InProgress)">
+                    In Progress
+                </label>
+            </div>
+
+            <div class="inline-block va-mid">
+                <input type="checkbox" id="passed" [disabled]="!(testStatusFilters$ | async).has(typeFilterEnum.Passed)">
+                <label for="passed" class="legend-item passed" (click)="changeFilter(typeFilterEnum.Passed)">
+                    Passed
+                </label>
+            </div>
+
+            <div class="inline-block va-mid">
+                <input type="checkbox" id="failed" [disabled]="!(testStatusFilters$ | async).has(typeFilterEnum.Failed)">
+                <label for="failed" class="legend-item failed" (click)="changeFilter(typeFilterEnum.Failed)">
+                    Failed
+                </label>
+            </div>
+
+            <div class="inline-block va-mid">
+                <input type="checkbox" id="blocked" [disabled]="!(testStatusFilters$ | async).has(typeFilterEnum.Blocked)">
+                <label for="blocked" class="legend-item blocked clickable" (click)="changeFilter(typeFilterEnum.Blocked)">
+                    Blocked
+                </label>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<mat-menu #bulkActionMenu="matMenu">
+    <ng-template matMenuContent let-role="role">
+        <button mat-menu-item [disabled]="!canPerformBulkStart()" (click)="onBulkStart()">
+            Start ({{ checkedSet.size }})
+        </button>
+
+        <button mat-menu-item [disabled]="!canPerformBulkPass()" (click)="onBulkPass()">
+            Pass ({{ checkedSet.size }})
+        </button>
+
+        <button mat-menu-item [disabled]="!canPerformBulkReopen()" (click)="onBulkReopen()">
+            Reopen ({{ checkedSet.size }})
+        </button>
+    </ng-template>
+</mat-menu>

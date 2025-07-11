@@ -1,0 +1,29 @@
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_settings" hrl_file="protocol_settings"]
+[ts file="settings-protocol.data.ts"]
+module SettingsProtocol
+{
+    record Settings
+    {
+        int personnel_session_duration;
+    }
+
+    record SettingsUpdateRequest
+    {
+        ?int personnel_session_duration;
+    }
+
+    [erlang http.server]
+    [ts http.client file="settings-protocol.service.ts"]
+    webservice HyperionSettingsService
+    {
+        [erlang http.handler="rest/generated/web_rest_admin_settings" http.callback="web_rest_callback_admin_settings"]
+        GetSettings => GET /api/admin/settings -> {Settings response};
+
+        [erlang http.handler="rest/generated/web_rest_admin_settings" http.callback="web_rest_callback_admin_settings"]
+        UpdateSettings => PUT /api/admin/settings {SettingsUpdateRequest request} -> {GenericResponse response};
+    }
+}

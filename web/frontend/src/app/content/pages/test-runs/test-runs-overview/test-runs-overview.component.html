@@ -1,0 +1,261 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            <div class="action-bar-button">
+                                <button
+                                    mat-raised-button
+                                    color="primary"
+                                    (click)=" createTestRunDialog()">
+                                    Add test run
+                                </button>
+                            </div>
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null);"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="loadItems()">
+                                <i class="la la-refresh"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding pre-wrapped">
+                <div class="m-portlet__preview p-0">
+                    <table
+                        mat-table
+                        matSort
+                        [matSortActive]="defaultOrderBy"
+                        [matSortDirection]="defaultOrderDir"
+                        matSortDisableClear
+                        [dataSource]="dataSource">
+                        <ng-container matColumnDef="id">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                ID
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 320px">
+                                <ng-container *ngIf="!editableMap.get(testRun.id)">
+                                    <a routerLink="{{ testRun.id }}/manage">
+                                        <strong *ngIf="!testRun.title">Test run #{{ testRun.id }}</strong>
+                                        <strong *ngIf="testRun.title">{{ testRun.title }}</strong>
+                                    </a>
+
+                                    <button
+                                        mat-icon-button
+                                        class="ml-2 mr-2 gray"
+                                        (click)="editableMap.set(testRun.id, true); windowRefService.focusElementById('test-run-' + testRun.id, 50)">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                </ng-container>
+
+                                <input
+                                    class="mr-4"
+                                       style="width: auto"
+                                       [style.display]="editableMap.get(testRun.id) ? 'block' : 'none'"
+                                       [id]="'test-run-' + testRun.id"
+                                       [value]="testRun.title ? testRun.title : 'Test run #' + testRun.id"
+                                       (keyup.enter)="$event.target.blur()"
+                                       (blur)="updateTestRun(testRun.id, $event.target.value); editableMap.set(testRun.id, false)">
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Status
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 85px">
+                                <div class="m-timeline-3 x-table">
+                                    <div class="m-timeline-3__items">
+                                        <div class="m-timeline-3__item m-0" [ngClass]="badgeStatusClass(testRun.status)">
+                                            <div class="m-timeline-3__item-desc pl-2">
+                                                <span class="m-timeline-3__item-text pl-1" style="line-height: 31px"
+                                                      [ngSwitch]="testRun.status">
+                                                    <span *ngSwitchCase="statusEnum.Draft">Draft</span>
+
+                                                    <span *ngSwitchCase="statusEnum.InProgress">In Progress</span>
+
+                                                    <span *ngSwitchCase="statusEnum.Closed">Closed</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="progress">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Progress
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun">
+                                <ng-container *ngIf="testRun.status === statusEnum.Draft">
+                                    Not started
+                                </ng-container>
+
+                                <ng-container
+                                    *ngIf="testRun.status !== statusEnum.Draft && testRun.totalItemCount === 0">
+                                    No tests are added
+                                </ng-container>
+
+                                <div
+                                    style="width: auto;padding-right: 10px"
+                                    *ngIf="testRun.status !== statusEnum.Draft && testRun.totalItemCount > 0">
+                                    <m-smart-progress-bar
+                                        [total]="testRun.totalItemCount"
+                                        [pending]="testRun.pendingItemCount"
+                                        [inProgress]="testRun.inProgressItemCount"
+                                        [passed]="testRun.passedItemCount"
+                                        [failed]="testRun.failedItemCount"
+                                        [blocked]="testRun.blockedItemCount">
+                                    </m-smart-progress-bar>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="createdAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Created At
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 120px">
+                                {{ testRun.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef class="text-center">
+                                Actions
+                            </th>
+
+                            <td
+                                mat-cell
+                                *matCellDef="let testRun" [ngSwitch]="testRun.status"
+                                class="text-left"
+                                style="width: 160px">
+                                <button
+                                    *ngSwitchCase="statusEnum.Draft"
+                                    mat-icon-button
+                                    matTooltip="Click to start"
+                                    matTooltipPosition="above"
+                                    [class.dimmed]="testRun.totalItemCount === 0"
+                                    (click)="startTestRun(testRun.id)"
+                                    [disabled]="testRun.totalItemCount === 0">
+                                    <mat-icon class="c-success f-s-24">play_arrow</mat-icon>
+                                </button>
+
+                                <button
+                                    *ngSwitchCase="statusEnum.InProgress"
+                                    mat-icon-button
+                                    matTooltip="Click to close"
+                                    matTooltipPosition="above"
+                                    [swal]="{
+                                        title: 'Confirmation',
+                                        html: 'Close <b>Test run '+ (testRun.title ? testRun.title : ('#'+testRun.id)) + '</b>?',
+                                        type: 'question',
+                                        confirmButtonText: 'Close',
+                                        confirmButtonColor: '#343a40',
+                                        confirmButtonClass: 'btn-dark',
+                                        showCancelButton: true,
+                                        heightAuto: false
+                                    }"
+                                    (confirm)="closeTestRun(testRun.id)">
+                                    <mat-icon class="c-warning f-s-24">stop</mat-icon>
+                                </button>
+
+                                <button
+                                    *ngSwitchCase="statusEnum.Closed"
+                                    mat-icon-button
+                                    matTooltip="Click to reopen"
+                                    matTooltipPosition="above"
+                                    [swal]="{
+                                        title: 'Confirmation',
+                                        html: 'Reopen <b>Test run '+ (testRun.title ? testRun.title : ('#'+testRun.id)) + '</b>?',
+                                        type: 'question',
+                                        confirmButtonText: 'Reopen',
+                                        confirmButtonColor: '#36a3f7',
+                                        confirmButtonClass: 'btn-info',
+                                        showCancelButton: true,
+                                        heightAuto: false
+                                    }"
+                                    (confirm)="reopenTestRun(testRun.id)">
+                                    <mat-icon class="c-info f-s-24">refresh</mat-icon>
+                                </button>
+
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Click to clone"
+                                    matTooltipPosition="above"
+                                    *ngIf="testRun.status === statusEnum.Closed || testRun.status === statusEnum.InProgress"
+                                    [swal]="{
+                                        title: 'Confirmation',
+                                        html: 'Clone <b>Test run '+ (testRun.title ? testRun.title : ('#'+testRun.id)) + '</b>?',
+                                        type: 'question',
+                                        confirmButtonText: 'Clone',
+                                        confirmButtonColor: '#343a40',
+                                        showCancelButton: true,
+                                        heightAuto: false
+                                    }"
+                                    (confirm)="cloneTestRun(testRun.id)">
+                                    <mat-icon class="gray f-s-24">content_copy</mat-icon>
+                                </button>
+
+                                <button
+                                    mat-icon-button
+                                    color="warn"
+                                    matTooltip="Click to delete"
+                                    matTooltipPosition="above"
+                                    [swal]="{
+                                        title: 'Confirmation',
+                                        html: 'Delete <b>Test run '+ (testRun.title ? testRun.title : ('#'+testRun.id)) + '</b>?',
+                                        type: 'question',
+                                        confirmButtonText: 'Delete',
+                                        confirmButtonColor: '#f4516c',
+                                        confirmButtonClass: 'btn-danger',
+                                        showCancelButton: true,
+                                        heightAuto: false
+                                    }"
+                                    (confirm)="deleteTestRun(testRun.id)">
+                                    <mat-icon class="c-error f-s-24">delete</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = index"></tr>
+                    </table>
+
+                    <mat-toolbar class="b-transparent">
+                        <mat-toolbar-row>
+                            <m-test-status-legend></m-test-status-legend>
+                            <span class="toolbar-spacer" style="flex: 1 1 auto"></span>
+
+                            <mat-paginator
+                                [length]="total"
+                                [pageSize]="pageSize"
+                                [pageSizeOptions]="pageSizes"
+                                showFirstLastButtons>
+                            </mat-paginator>
+                        </mat-toolbar-row>
+                    </mat-toolbar>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

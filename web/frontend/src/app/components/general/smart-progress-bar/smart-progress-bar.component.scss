@@ -1,0 +1,91 @@
+.progressbar-container {
+    display: inline-block;
+    overflow: hidden;
+    width: 100%;
+    border-bottom: 1px solid rgb(235, 237, 242);
+
+    &.rounded {
+        border-radius: 3px;
+    }
+
+    .progressbar {
+        display: table;
+        min-width: 150px;
+        width: 100%;
+
+        .progressbar-entry {
+            display: table-cell;
+            // height: 10px;
+
+            &.pending {
+                &.solid {
+                    background: rgba(212, 213, 230, 1);
+                }
+
+                &.gradient {
+                    background: linear-gradient(
+                        rgba(212, 213, 230, 0.5),
+                        rgba(212, 213, 230, .75),
+                        rgba(212, 213, 230, 0.5)
+                    );
+                }
+            }
+
+            &.in-progress {
+                &.solid {
+                    background: rgba(54, 163, 247, 1);
+                }
+
+                &.gradient {
+                    background: linear-gradient(
+                        rgba(54, 163, 247, 0.75),
+                        rgba(54, 163, 247, 1),
+                        rgba(54, 163, 247, 0.75)
+                    );
+                }
+            }
+
+            &.passed {
+                &.solid {
+                    background: rgba(52, 191, 163, 1);
+                }
+
+                &.gradient {
+                    background: linear-gradient(
+                        rgba(52, 191, 163, 0.75),
+                        rgba(52, 191, 163, 1),
+                        rgba(52, 191, 163, 0.75)
+                    );
+                }
+            }
+
+            &.failed {
+                &.solid {
+                    background: rgba(244, 81, 108, 1);
+                }
+
+                &.gradient {
+                    background: linear-gradient(
+                        rgba(244, 81, 108, 0.75),
+                        rgba(244, 81, 108, 1),
+                        rgba(244, 81, 108, 0.75)
+                    );
+                }
+            }
+
+            &.blocked {
+                &.solid {
+                    background: rgba(255, 184, 34, 1);
+                }
+
+                &.gradient {
+                    background: linear-gradient(
+                        rgba(255, 184, 34, 0.75),
+                        rgba(255, 184, 34, 1),
+                        rgba(255, 184, 34, 0.75)
+                    );
+                }
+            }
+        }
+    }
+}

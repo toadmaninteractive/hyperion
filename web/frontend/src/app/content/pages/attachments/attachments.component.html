@@ -1,0 +1,169 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                        </h3>
+                    </div>
+                </div>
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <div class="pr-2">
+                                <mat-form-field floatLabel="never" style="width: 300px">
+                                    <input placeholder="Type to filter..." matInput
+                                           (keyup)="applyFilter($event.target.value)"/>
+                                </mat-form-field>
+                            </div>
+                        </li>
+
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null);"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="refresh()">
+                                <i class="las la-sync-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding">
+                <div class="m-portlet__preview p-0">
+                    <div class="attachments-container mat-elevation-z8">
+                        <div class="loading-shade"
+                             *ngIf="isLoadingResults">
+                            <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
+                        </div>
+
+                        <div class="table-container">
+
+                            <table mat-table [dataSource]="data" class="attachments-table"
+                                   matSort
+                                   matSortActive="created"
+                                   matSortDisableClear
+                                   matSortDirection="desc"
+                                   multiTemplateDataRows>
+
+                                <!-- FileName Column -->
+                                <ng-container matColumnDef="filename">
+                                    <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear>File name</th>
+                                    <td mat-cell *matCellDef="let row">
+                                        <ng-container [ngSwitch]="row.contentType">
+                                            <img *ngSwitchCase="'image/jpeg'"
+                                                 [src]="'/download/attachments/' + row.thumbFilename"
+                                                 class="mr-2"
+                                                 height="32"
+                                                 (click)="openImage(row)"
+                                            />
+                                            <img *ngSwitchCase="'image/png'"
+                                                 [src]="'/download/attachments/' + row.thumbFilename"
+                                                 class="mr-2"
+                                                 height="32"
+                                                 (click)="openImage(row)"/>
+                                            <i *ngSwitchCase="'application/pdf'" class="las la-file-pdf f-s-24 v-a-middle"></i>
+                                            <i *ngSwitchCase="'text/xml'" class="las la-file-code f-s-24 v-a-middle"></i>
+                                            <i *ngSwitchCase="'text/plain'" class="las la-file-alt f-s-24 v-a-middle"></i>
+                                            <i *ngSwitchCase="'application/zip'" class="las la-file-archive f-s-24 v-a-middle"></i>
+                                            <i *ngSwitchDefault class="las la-file f-s-24 v-a-middle"></i>
+                                        </ng-container>
+                                        <span class="v-a-middle">{{ row.originalFilename }}</span>
+                                        <a href="javascript:void(null)"
+                                           class="v-a-middle ml-2"
+                                           (click)="requestLinks(row);">
+                                            {{ expandedRow === row ? 'collapse' : 'more...' }}
+                                        </a>
+                                    </td>
+                                </ng-container>
+
+                                <!-- Created Column -->
+                                <ng-container matColumnDef="created">
+                                    <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear>
+                                        Created
+                                    </th>
+                                    <td mat-cell *matCellDef="let row">{{ row.createdAt | date }}</td>
+                                </ng-container>
+
+                                <!-- Type Column -->
+                                <ng-container matColumnDef="content_type">
+                                    <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear>
+                                        Type
+                                    </th>
+                                    <td mat-cell *matCellDef="let row">{{ row.contentType }}</td>
+                                </ng-container>
+
+
+
+                                <!-- Filesize Column -->
+                                <ng-container matColumnDef="filesize">
+                                    <th mat-header-cell *matHeaderCellDef mat-sort-header disableClear>
+                                        Filesize
+                                    </th>
+                                    <td mat-cell *matCellDef="let row">{{ row.fileSize | mPrettySize }}</td>
+                                </ng-container>
+
+                                <!-- Actions Column -->
+                                <ng-container matColumnDef="actions">
+                                    <th mat-header-cell *matHeaderCellDef>
+                                        Actions
+                                    </th>
+                                    <td mat-cell *matCellDef="let row">
+                                        <a [href]="'/download/attachments/' + row.filename" download>
+                                            <button mat-icon-button>
+                                                <mat-icon>file_download</mat-icon>
+                                            </button>
+                                        </a>
+                                    </td>
+                                </ng-container>
+
+                                <!-- expanded content -->
+                                <ng-container matColumnDef="expandedDetail">
+                                    <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+                                        <div class="attachment-element-detail"
+                                             [@detailExpand]="row === expandedRow ? 'expanded' : 'collapsed'">
+                                            <div>
+                                                <span>Attachment used in</span>
+                                                <ul>
+                                                    <li *ngFor="let item of detailInfoSetupStep">
+                                                        Setup <a [routerLink]="['/setup/', project.key]" [queryParams]="{id : item.id}"> {{ item.title }}</a>
+                                                    </li>
+
+                                                    <li *ngFor="let item of detailInfoTestCase">
+                                                        Test case <a [routerLink]="['/test-cases/', project.key]" [queryParams]="{id : item.id}"> {{ item.title }}</a>
+                                                    </li>
+
+                                                    <li *ngFor="let item of detailInfoTestRunItem">
+                                                        Test run item <a [routerLink]="['/testing', project.key, item.runId, 'details']" [queryParams]="{item_id : item.id}"> {{ item.id }}</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </ng-container>
+
+                                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                                <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                                    class="attachments-row"
+                                    [class.example-expanded-row]="expandedRow === row"></tr>
+                                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+
+                            </table>
+                        </div>
+
+                        <mat-paginator [length]="resultsLength" [pageSize]="15"></mat-paginator>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

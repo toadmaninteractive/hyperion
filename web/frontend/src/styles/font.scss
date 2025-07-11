@@ -1,0 +1,38 @@
+.bold { font-weight: bold; }
+
+.f-w-100 { font-weight: 100 !important; }
+.f-w-200 { font-weight: 200 !important; }
+.f-w-300 { font-weight: 300 !important; }
+.f-w-400 { font-weight: 400 !important; }
+.f-w-500 { font-weight: 500 !important; }
+.f-w-600 { font-weight: 600 !important; }
+.f-w-700 { font-weight: 700 !important; }
+.f-w-800 { font-weight: 800 !important; }
+.f-w-900 { font-weight: 900 !important; }
+
+.f-s-9 { font-size: 9px !important; }
+.f-s-10 { font-size: 10px !important; }
+.f-s-11 { font-size: 11px !important; }
+.f-s-12 { font-size: 12px !important; }
+.f-s-13 { font-size: 13px !important; }
+.f-s-14 { font-size: 14px !important; }
+.f-s-15 { font-size: 15px !important; }
+.f-s-16 { font-size: 16px !important; }
+.f-s-17 { font-size: 17px !important; }
+.f-s-18 { font-size: 18px !important; }
+.f-s-19 { font-size: 19px !important; }
+.f-s-20 { font-size: 20px !important; }
+.f-s-21 { font-size: 21px !important; }
+.f-s-22 { font-size: 22px !important; }
+.f-s-23 { font-size: 23px !important; }
+.f-s-24 { font-size: 24px !important; }
+.f-s-25 { font-size: 25px !important; }
+
+.arial {
+    font-family: Arial;
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: local("JetBrains Mono"), url(../assets/app/media/fonts/JetBrainsMono-Medium.woff2);
+}

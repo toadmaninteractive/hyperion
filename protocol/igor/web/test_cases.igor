@@ -1,0 +1,121 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_test_case" hrl_file="protocol_test_case"]
+[ts file="test-case-protocol.data.ts"]
+module TestCaseProtocol
+{
+    record CreateTestCaseRequest
+    {
+        ?long parent_id;
+        ?long precondition_id;
+        ?long setup_id;
+        bool is_group;
+        string title;
+        ?string description;
+        string test_steps;
+        string expected_result;
+        bool is_draft;
+        int order_num;
+    }
+
+    [* patch_record]
+    record UpdateTestCaseRequest
+    {
+        ?long parent_id;
+        ?long precondition_id;
+        ?long setup_id;
+        string title;
+        string description;
+        string test_steps;
+        string expected_result;
+        bool is_draft;
+        int order_num;
+    }
+
+    enum TestCaseError
+    {
+        parent_not_exists;
+        project_not_exists;
+        precondition_not_exists;
+        setup_not_exists;
+        title_already_exists;
+        has_children;
+    }
+
+    record SpecializeTestCaseRequest
+    {
+        SpecType spec_type;
+        ?string value;
+        ?long parameter_id;
+    }
+
+    enum TestCaseSpecializeError
+    {
+        test_case_not_exists;
+        setup_step_not_assigned;
+        setup_step_not_exists;
+        invalid_setup_step;
+        parameterless_setup_step;
+        invalid_parameter_value;
+        invalid_parameter_source;
+    }
+
+    [erlang http.server]
+    [ts http.client file="test-case-protocol.service.ts"]
+    webservice HyperionTestCaseService
+    {
+        [erlang http.handler="rest/generated/web_rest_test_case_tree" http.callback="web_rest_callback_test_case"]
+        GetTestCaseTree => GET /api/test/cases/tree/{long project_id} ->
+            200: Collection<TreeNode<TestCase>>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_case" http.callback="web_rest_callback_test_case"]
+        GetTestCase => GET /api/test/cases/{long id} ->
+            200: TestCase,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_cases" http.callback="web_rest_callback_test_case" http.cowboy_req]
+        CreateTestCase => POST /api/test/cases/new/{long project_id} CreateTestCaseRequest ->
+            200: TestCase,
+            400: BadRequestError<TestCaseError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_case" http.callback="web_rest_callback_test_case" http.cowboy_req]
+        UpdateTestCase => PUT /api/test/cases/{long id} UpdateTestCaseRequest ->
+            200: TestCase,
+            400: BadRequestError<TestCaseError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_case" http.callback="web_rest_callback_test_case" http.cowboy_req]
+        DeleteTestCase => DELETE /api/test/cases/{long id} ->
+            200: GenericResponse,
+            400: BadRequestError<TestCaseError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_case_specialize" http.callback="web_rest_callback_test_case" http.cowboy_req]
+        SpecializeTestCase => PUT /api/test/cases/{long id}/{long setup_id}/specialize SpecializeTestCaseRequest ->
+            200: TestCase,
+            400: BadRequestError<TestCaseSpecializeError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_test_case_despecialize" http.callback="web_rest_callback_test_case" http.cowboy_req]
+        DespecializeTestCase => PUT /api/test/cases/{long id}/{long setup_id}/despecialize Empty ->
+            200: TestCase,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

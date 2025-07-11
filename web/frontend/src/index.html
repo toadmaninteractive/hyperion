@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Hyperion</title>
+    <base href="/">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="//fonts.googleapis.com/css?family=Capriola|Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+
+    <style type="text/css">
+        body,
+        html {
+            height: 100%;
+        }
+
+        .m-splash-screen {
+            background-color: #f2f3f8;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            z-index: 99999;
+        }
+
+        .m-splash-screen > .splash-logo {
+            width: 64px;
+            /* -webkit-animation: rotation 3s infinite linear; */
+        }
+
+        @-webkit-keyframes rotation {
+            from {
+                -webkit-transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(359deg);
+            }
+        }
+    </style>
+</head>
+
+<body m-root></body>
+
+</html>

@@ -1,0 +1,146 @@
+// Timeline embedded in table
+.x-table.m-timeline-3 {
+    .m-timeline-3__item {
+        &:before {
+            left: 0;
+            content: "";
+        }
+
+        .m-timeline-3__item-desc {
+            padding-left: 1rem;
+        }
+    }
+}
+
+.x-table.m-timeline-3.x-avatar {
+    .m-timeline-3__item {
+        &:before {
+            left: 40px;
+            content: "";
+        }
+
+        .m-timeline-3__item-time {
+            padding-top: 3px !important;
+        }
+
+        .m-timeline-3__item-desc {
+            padding-left: 52px;
+        }
+    }
+}
+
+// Table icon image
+.x-table-icon {
+    width: 16px;
+    height: 16px;
+
+    &.x-24 {
+        width: 24px;
+        height: 24px;
+    }
+
+    &.x-32 {
+        width: 32px;
+        height: 32px;
+    }
+
+    &.x-48 {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+// Table badge
+.m-badge.x-tag {
+    font-size: 1rem;
+    padding: 5px 10px;
+
+    &.compact {
+        font-size: 12px;
+        padding: 0 4px;
+    }
+
+    &.mini {
+        font-size: 9px;
+        padding: 0 4px;
+        border-radius: 4px;
+        line-height: 16px;
+        min-height: 16px;
+    }
+}
+
+.cell-id {
+    width: 90px;
+
+    &.deleted {
+        padding-left: 22px !important;
+        border-left: 4px solid rgba(244, 81, 108, 1);
+    }
+}
+
+.cell-uid {
+    width: 150px;
+
+    &.deleted {
+        padding-left: 22px !important;
+        border-left: 4px solid rgba(244, 81, 108, 1);
+    }
+}
+
+.cell-actions {
+    width: 50px;
+}
+
+.cell-checkbox {
+    width: 85px;
+}
+
+.cell-status {
+    width: 115px;
+}
+
+.cell-price {
+    width: 80px;
+}
+
+.cell-number {
+    width: 80px;
+}
+
+.cell-number-long {
+    width: 100px;
+}
+
+.cell-icons {
+    width: 90px;
+}
+
+.cell-datetime {
+    width: 135px;
+}
+
+.cell-role {
+    width: 135px;
+}
+
+.cell-role-long {
+    width: 200px;
+}
+
+.cell-role-list {
+    width: 400px;
+}
+
+.cell-long-name {
+    width: 175px;
+}
+
+tr.deleted {
+    background-color: rgba(244, 81, 108, .075);
+}
+
+.hint-icon {
+    font-size: 1.5rem;
+    font-weight: 600;
+    vertical-align: bottom;
+}

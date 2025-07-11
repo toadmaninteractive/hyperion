@@ -1,0 +1,106 @@
+<h1 mat-dialog-title>Edit project {{ pristineProject.title }}</h1>
+
+<div mat-dialog-content>
+    <form class="m-form m-form--fit" [ngClass]="{ dimmed: loading$ | async }" style="height: 500px" *ngIf="projectInitialized()">
+        <fieldset [disabled]="loading$ | async">
+            <m-alert [(message)]="errorMessage" kind="danger"></m-alert>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-1">
+                <mat-form-field class="example-full-width">
+                    <input
+                        type="text"
+                        required
+                        matInput
+                        name="projectTitle"
+                        placeholder="Project title"
+                        [(ngModel)]="project.title">
+
+                    <mat-hint align="start" class="f-s-12 pt-1">
+                        Unique title to identify this project
+                    </mat-hint>
+                </mat-form-field>
+            </div>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-4">
+                <mat-form-field class="example-full-width">
+                    <input
+                        type="text"
+                        required
+                        matInput
+                        name="projectKey"
+                        placeholder="Project URL key"
+                        [(ngModel)]="project.key">
+
+                    <mat-hint align="start" class="f-s-11 pt-1 block">
+                        Follow these rules to define unique project key:<br>
+                        &ndash; it should contain lowercase latin letters, digits, dash and underscore<br>
+                        &ndash; think twice: it is not recommended to change this key later
+                    </mat-hint>
+                </mat-form-field>
+            </div>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-4">
+                <mat-form-field class="example-full-width">
+                    <input
+                        type="text"
+                        matInput
+                        name="slackReceivers"
+                        placeholder="Slack channels"
+                        [(ngModel)]="project.slackReceivers">
+
+                    <mat-hint align="start" class="f-s-11 pt-1 block">
+                        &ndash; Specify multiple channels by separating them with comma<br>
+                        &ndash; Leave blank to disable Slack notifications
+                    </mat-hint>
+                </mat-form-field>
+            </div>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-1">
+                <mat-form-field class="example-full-width">
+                    <mat-label>Select JIRA instance</mat-label>
+
+                    <mat-select [(value)]="project.jiraId">
+                        <mat-option [value]="null">None</mat-option>
+
+                        <mat-option [value]="jira.id" *ngFor="let jira of jiraInstances">
+                            {{ jira.title }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-1">
+                <mat-form-field class="example-full-width">
+                    <input
+                        type="text"
+                        [attr.required]="project.jiraId > 0 || null"
+                        matInput
+                        name="newJiraKey"
+                        placeholder="JIRA project key"
+                        [(ngModel)]="project.jiraKey">
+
+                    <mat-hint align="start" class="f-s-11 pt-1 block">
+                        &ndash; Should not be empty if JIRA is selected
+                    </mat-hint>
+                </mat-form-field>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+<div mat-dialog-actions class="justify-content-end">
+    <button
+        mat-button [mat-dialog-close]="null"
+        cdkFocusInitial>
+        No, thanks
+    </button>
+
+    <button
+        mat-raised-button
+        color="primary"
+        [disabled]="(loading$ | async) || !isProjectValid() || !projectChanged()"
+        (click)="updateProject()">
+        Update project
+    </button>
+</div>
+

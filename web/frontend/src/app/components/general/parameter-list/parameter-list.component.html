@@ -1,0 +1,98 @@
+    <div class="m-card-warning" *ngIf="!nodeTitleTemplate">
+        Node template not defined
+    </div>
+
+    <div
+        class="drop-parent"
+        *ngIf="draggedNode && draggedNode.item.parentId"
+        (dragover)="onDragOverRoot($event)"
+        (drop)="onDropToRoot($event)"
+        (dragleave)="onDragLeaveRoot()"
+        [class.drop-parent-select]="dragOverRoot">
+        <div class="drop-text">
+            Drop to root
+        </div>
+    </div>
+
+    <span *ngIf="dataSource?.data?.length === 0">
+        <m-loading-indicator [isInline]="true"></m-loading-indicator>
+    </span>
+
+    <mat-tree #treeSelector [dataSource]="dataSource" [treeControl]="treeControl" class="basic-tree" *ngIf="rootNode">
+        <mat-nested-tree-node
+            *matTreeNodeDef="let node"
+            [attr.matTreeNodeToggle]="node.children.length === 0"
+            [style.display]="hiddenNodeSet?.has(node) ? 'none' : 'block'">
+            <li>
+                <div
+                    class="mat-tree-node"
+                    [attr.draggable]="node === draggedNode"
+                    [class.dimmed]="!!filterFn && !filterFn(node, filterText)"
+                    [class.more]="!!filterFn && !filterFn(node, filterText)"
+                    [class.drag-start]="node === draggedNode"
+                    [class.drop-center]="node === hoveredNode && draggedNodeHoveredType === 0 && node !== draggedNode && canDropInto &&canDropInto(draggedNode, hoveredNode)"
+                    [class.drop-before]="node === hoveredNode && draggedNodeHoveredType === -1 && node !== draggedNode && canDropBefore && canDropBefore(draggedNode, hoveredNode)"
+                    [class.drop-below]="node === hoveredNode && draggedNodeHoveredType === 1 && node !== draggedNode && canDropAfter && canDropAfter(draggedNode, hoveredNode)"
+                    (dragover)="onDragOver($event, node)"
+                    (dragend)="onDragEnd($event)"
+                    (drop)="onDrop($event, node)"
+                    (dragstart)="onDragStart($event, node)">
+                    <mat-icon class="pointer" *ngIf="node.children?.length > 0" matTreeNodeToggle
+                              (click)="toggleTreeNode(node, treeControl.isExpanded(node))">
+                        {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+                    </mat-icon>
+
+                    <mat-checkbox
+                        *ngIf="showCheckboxes"
+                        color="primary"
+                        class="mr-1"
+                        style="margin-top: -7px"
+                        [checked]="checkedNodeSet.has(node.item.id)"
+                        [indeterminate]="indeterminatedNodeSet.has(node.item.id)"
+                        [disabled]="node.item.isDraft"
+                        (change)="onCheckNode(node, $event.checked)">
+                    </mat-checkbox>
+
+                    <mat-icon
+                        *ngIf="canDrag && canDrag(node)" class="light drag-handle"
+                        (mousedown)="setDraggedNode($event, node)" (mouseup)="unsetDraggedNode(node)">
+                        apps
+                    </mat-icon>
+
+                    <ng-container [ngTemplateOutlet]="nodeTitleTemplate"
+                                  [ngTemplateOutletContext]="{ node: node }"></ng-container>
+
+                    <ng-container [ngTemplateOutlet]="addButtonTemplate ? addButtonTemplate : defaultAddButton"
+                                  [ngTemplateOutletContext]="{ node: node }"></ng-container>
+
+                    <mat-icon
+                        *ngIf="nodeRemoved.observers.length > 0"
+                        class="pointer"
+                        color="warn"
+                        matTooltip="Click to delete"
+                        matTooltipPosition="above"
+                        (click)="onRemoveNode(node)">
+                        delete
+                    </mat-icon>
+                </div>
+
+                <ul [class.basic-tree-invisible]="!treeControl.isExpanded(node)" *ngIf="node.children.length > 0">
+                    <ng-container matTreeNodeOutlet></ng-container>
+                </ul>
+            </li>
+        </mat-nested-tree-node>
+    </mat-tree>
+
+    <ng-template #defaultAddButton let-node="node">
+        <button
+            *ngIf="nodeAdded.observers.length > 0"
+            class="f-w-600 pointer"
+            color="primary"
+            mat-icon-button
+            matTooltip="Click to add a child"
+            matTooltipPosition="above"
+            [disabled]="treeNodeHasDraftChildren(node)"
+            (click)="onAddNode(node)">
+            <mat-icon>add</mat-icon>
+        </button>
+    </ng-template>

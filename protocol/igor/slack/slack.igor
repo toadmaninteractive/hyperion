@@ -1,0 +1,156 @@
+[* json.enabled]
+module SlackProtocol
+{
+    enum FileMode
+    {
+        hosted;
+        external;
+        snippet;
+        post;
+    }
+
+    record File
+    {
+        string id;
+        int created;    // UNIX timestamp, sec
+        int timestamp;  // UNIX timestamp, sec [deprecated]
+        string name;
+        string title;
+        string mimetype;
+        string filetype;
+        string pretty_type;
+        string user;
+        bool editable;
+        int size;
+        FileMode mode;
+        bool is_external;
+        string external_type;
+        bool is_public;
+        bool public_url_shared;
+        bool display_as_bot;
+        string username;
+        string url_private;
+        string url_private_download;
+        string permalink;
+        string permalink_public;
+        string edit_link;
+        string preview;
+        string preview_highlight;
+        int lines;
+        int lines_more;
+        bool preview_is_truncated;
+        int comments_count;
+        bool is_starred;
+        json shares;
+        list<string> channels;
+        list<string> groups;
+        list<string> ims;
+        bool has_rich_preview;
+    }
+    
+    record Message
+    {
+        string type;
+        string subtype;
+        string text;
+        string ts;
+        string username;
+        string bot_id;
+    }
+
+    record PostMessageRequest
+    {
+        string channel;
+        string text;
+    }
+
+    record AttachmentField
+    {
+        string title;
+        string value;
+        bool short = false;
+    }
+
+    record AttachmentBlock
+    {
+        ?string fallback;
+        ?string color;
+        ?string pretext;
+        ?string author_name;
+        ?string author_link;
+        ?string author_icon;
+        ?string title;
+        ?string title_link;
+        ?string text;
+        ?list<AttachmentField> fields;
+        ?string image_url;
+        ?string thumb_url;
+        ?string footer;
+        ?string footer_icon;
+        ?int ts;
+    }
+
+    record PostMessageExRequest
+    {
+        string channel;
+        string text;
+        bool mrkdwn = false;
+        list<AttachmentBlock> attachments;
+    }
+
+    record PostMessageResponse
+    {
+        bool ok;
+        ?string channel;
+        ?string ts;
+        ?Message message;
+        ?string error;
+    }
+    
+    [* http.form.enabled]
+    record PostSnippetRequest
+    {
+        string channels;
+        string title;
+        string initial_comment;
+        string content;
+    }
+
+    record PostSnippetResponse
+    {
+        bool ok;
+        ?File file;
+    }
+    
+    record GetUsersResponse
+    {
+        bool ok;
+        list<Member> members;
+    }
+    
+    record Member
+    {
+        string id;
+        MemberProfile profile;
+    }
+    
+    record MemberProfile
+    {
+        string real_name;
+        string display_name;
+    }
+    
+    record Channel
+    {
+        string id;
+    }
+
+    [erlang http.client http.base_url="slack_config:api_url()" http.default_client_headers="slack_auth:default_headers()"]
+    webservice SlackApi
+    {
+        PostMessage => POST /chat.postMessage PostMessageRequest -> {PostMessageResponse response};
+        PostMessageEx => POST /chat.postMessage PostMessageExRequest -> {PostMessageResponse response};
+        PostSnippet => POST /files.upload PostSnippetRequest as form -> {PostSnippetResponse response};
+        GetUsers => GET /users.list -> {GetUsersResponse response};
+    }
+}

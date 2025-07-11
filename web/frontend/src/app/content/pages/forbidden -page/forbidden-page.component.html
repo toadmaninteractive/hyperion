@@ -1,0 +1,53 @@
+<div *ngIf="errorType === 1" class="m-grid__item m-grid__item--fluid m-grid m-error-1"
+     style="background-image: url(./assets/app/media/img/error/bg1.jpg);">
+    <div class="m-error_container">
+        <span class="m-error_number">
+            <h1>403</h1>
+        </span>
+        <p class="m-error_desc">
+            Forbidden
+        </p>
+        <p class="m-error_title">
+            <a class="m-error_desc" routerLink="/dashboard/{{ availableProject.key }}" style="color:#5867dd">
+                return to project <b>{{ availableProject.title }}</b> dashboard
+            </a>
+        </p>
+    </div>
+</div>
+
+<div *ngIf="errorType === 2" class="m-grid__item m-grid__item--fluid m-grid m-error-1"
+     style="background-image: url(./assets/app/media/img/error/bg4.jpg);">
+    <div class="m-error_container">
+        <span class="m-error_number">
+            <h1>403</h1>
+        </span>
+        <p class="m-error_desc">
+            Forbidden
+        </p>
+        <p class="m-error_title">
+            <a class="m-error_desc" routerLink="/dashboard/{{ availableProject.key }}" style="color:#5867dd">
+                return to project <b>{{ availableProject.title }}</b> dashboard
+            </a>
+        </p>
+    </div>
+</div>
+
+<div *ngIf="errorType === 3" class="m-grid__item m-grid__item--fluid m-grid m-error-3"
+     style="background-image: url(./assets/app/media/img/error/bg3.jpg);">
+    <div class="m-error_container">
+        <span class="m-error_number">
+            <h1>403</h1>
+        </span>
+
+        <p class="m-error_title m--font-light">
+            Forbidden
+        </p>
+
+        <span class="m-error_title">
+            <a class="m-error_desc" routerLink="/dashboard/{{ availableProject.key }}" style="color:#5867dd">
+                return to project <b>{{ availableProject.title }}</b> dashboard
+            </a>
+        </span>
+    </div>
+</div>
+

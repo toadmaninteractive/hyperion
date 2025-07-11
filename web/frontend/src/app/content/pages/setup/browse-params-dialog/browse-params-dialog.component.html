@@ -1,0 +1,32 @@
+<h1 mat-dialog-title>Choose parameter</h1>
+
+<mat-checkbox *ngIf="data.paramData.length > 0;else other_content"
+    color="primary"
+    [checked]="hideUnsetParameters"
+    (change)="checkFilter()">
+    <a href="javascript:void(null)" (click)="checkFilter()">{{ hideUnsetParameters? 'Show unset parameters' : 'Hide unset parameters'}}</a>
+</mat-checkbox>
+
+
+<div mat-dialog-content>
+    <perfect-scrollbar style="max-height: 80vh;">
+        <m-dynamic-tree-map
+            [inputNodes$]="parametersService.parameterTree$"
+            [hiddenNodeSet]="hiddenNodeSetId"
+            [canDrag]="false"
+            [canAdd]="false"
+            [canRemove]="false">
+            <ng-template #nodeTitleTemplate let-node="node">
+                <i class="las dimmed f-s-20"
+                   [class.la-cog]="node.item.dependentId === null"
+                   [class.la-cogs]="node.item.dependentId"></i>
+
+                <div class="new-in-place monospace">
+                    <div class="pointer f-w-400" (click)="selectParameter(node)"> {{node.item.title}} </div>
+                </div>
+            </ng-template>
+        </m-dynamic-tree-map>
+    </perfect-scrollbar>
+</div>
+
+<ng-template #other_content><span class="f-s-14">{{data.project.title}} does not contain any parameters</span></ng-template>

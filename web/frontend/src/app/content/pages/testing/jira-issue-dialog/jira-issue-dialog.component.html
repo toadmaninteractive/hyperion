@@ -1,0 +1,43 @@
+<h1 mat-dialog-title>Create issue in JIRA</h1>
+
+<div mat-dialog-content>
+    <form class="m-form m-form--fit" [class.dimmed]="loading$ | async">
+        <fieldset [disabled]="loading$ | async">
+            <m-alert [(message)]="errorMessage" kind="danger" *ngIf="errorMessage"></m-alert>
+
+            <div class="form-group m-form__group pl-0 pr-0">
+                <mat-form-field class="example-full-width">
+                    <input
+                        matInput
+                        required
+                        type="text"
+                        name="issueSummary"
+                        placeholder="Issue summary"
+                        [(ngModel)]="summary">
+                </mat-form-field>
+            </div>
+
+            <div class="form-group m-form__group pl-0 pr-0">
+                <mat-form-field class="example-full-width">
+                    <textarea
+                        matInput
+                        name="issueDescription"
+                        placeholder="Issue description"
+                        style="height: 50px"
+                        [(ngModel)]="description"></textarea>
+                </mat-form-field>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+<div mat-dialog-actions class="justify-content-end">
+    <button
+        mat-raised-button
+        color="primary"
+        cdkFocusInitial
+        [disabled]="!canSubmit()"
+        (click)="onCreateIssue()">
+        Create issue
+    </button>
+</div>

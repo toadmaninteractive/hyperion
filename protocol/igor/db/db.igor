@@ -1,0 +1,310 @@
+using CommonProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_db" hrl_file="protocol_db"]
+[ts file="db-protocol.data.ts" enum_descriptions]
+module DbProtocol
+{
+    enum AccessRole
+    {
+        # Consumer
+        consumer;
+
+        # Maintainer
+        maintainer;
+
+        # Administrator
+        admin;
+    }
+
+    enum TestRunStatus
+    {
+        # Draft
+        draft;
+
+        # In progress
+        in_progress;
+
+        # Closed
+        closed;
+    }
+    
+    enum TestStatus
+    {
+        # Pending
+        pending;
+
+        # In progress
+        in_progress;
+
+        # Passed
+        passed;
+
+        # Failed
+        failed;
+
+        # Blocked
+        blocked;
+    }
+
+    enum AttachmentOwner
+    {
+        setup_step;
+        test_case;
+        test_run;
+        test_run_item;
+    }
+
+    enum SpecType
+    {
+        value;
+        source;
+        any;
+        random;
+    }
+
+    record PersonnelAccount
+    {
+        long id;
+        int rev;
+        string username;
+        ?string name;
+        ?string email;
+        ?string phone;
+        bool is_blocked;
+        bool is_deleted;
+        bool is_superadmin;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record PersonnelAccountProfile
+    {
+        long id;
+        int rev;
+        string username;
+        ?string name;
+        ?string email;
+        ?string phone;
+        bool is_blocked;
+        bool is_deleted;
+        bool is_project_manager;
+        bool is_superadmin;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record PersonnelAccountRole
+    {
+        long personnel_id;
+        string username;
+        long project_id;
+        string project_title;
+        ?json group_roles;
+        ?AccessRole user_role;
+    }
+
+    record PersonnelGroup
+    {
+        long id;
+        int rev;
+        string name;
+        ?string description;
+        bool is_deleted;
+        list<string> members;
+        int member_count;
+        bool is_superadmin;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record PersonnelGroupRole
+    {
+        long group_id;
+        string group_name;
+        long project_id;
+        string project_title;
+        ?AccessRole group_role;
+    }
+
+    record Project
+    {
+        long id;
+        int rev;
+        string title;
+        string key;
+        ?string slack_receivers;
+        long owner_id;
+        string owner_name;
+        ?long jira_id;
+        ?string jira_title;
+        ?string jira_url;
+        ?string jira_key;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record SetupStep
+    {
+        long id;
+        int rev;
+        ?long parent_id;
+        long project_id;
+        ?string title;
+        ?string description;
+        bool is_draft;
+        int order_num;
+        ?long parameter_id;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record TestCaseSpecialization
+    {
+        long setup_id;
+        SpecType spec_type;
+        ?string value;
+        ?long parameter_id;
+    }
+
+    record TestCase
+    {
+        long id;
+        int rev;
+        ?long parent_id;
+        long project_id;
+        ?long precondition_id;
+        ?long setup_id;
+        bool is_group;
+        ?string title;
+        ?string description;
+        string test_steps;
+        string expected_result;
+        bool is_draft;
+        int order_num;
+        list<TestCaseSpecialization> specs = [];
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record TestRun
+    {
+        // Entity fields
+        long id;
+        int rev;
+        long project_id;
+        ?string title;
+        TestRunStatus status;
+        DateTime created_at;
+        DateTime updated_at;
+        ?DateTime started_at;
+        ?DateTime finished_at;
+
+        // Calculated fields
+        int total_item_count;
+        int pending_item_count;
+        int in_progress_item_count;
+        int passed_item_count;
+        int failed_item_count;
+        int blocked_item_count;
+    }
+
+    record SpecializedSetup
+    {
+        long setup_id;
+        string param;
+        string value;
+    }
+
+    record TestRunItemParams
+    {
+        list<long> setup_steps = [];
+        list<SpecializedSetup> specs = [];
+    }
+
+    record TestRunItem
+    {
+        long id;
+        int rev;
+        long run_id;
+        long case_id;
+        long reporter_id;
+        string reporter_name;
+        ?long assignee_id;
+        ?string assignee_name;
+        TestStatus status;
+        ?string summary;
+        ?long failed_setup_id;
+        int order_num;
+        TestRunItemParams params;
+        ?string jira_issue_key;
+        ?string jira_issue_url;
+        DateTime created_at;
+        DateTime updated_at;
+        ?DateTime started_at;
+        ?DateTime finished_at;
+    }
+
+    record FileAttachment
+    {
+        long id;
+        long file_size;
+        string file_sha;
+        string filename;
+        ?string thumb_filename;
+        ?string original_filename;
+        ?string content_type;
+        long personnel_id;
+        string personnel_name;
+        DateTime created_at;
+    }
+
+    record FileAttachmentLink
+    {
+        long attachment_id;
+        AttachmentOwner owner;
+        long linked_id;
+        long project_id;
+        long personnel_id;
+        string personnel_name;
+        DateTime created_at;
+    }
+
+    record ParameterValue
+    {
+        string value;
+        ?string dependent_value;
+    }
+
+    record Parameter
+    {
+        long id;
+        int rev;
+        long project_id;
+        ?long parent_id;
+        ?long dependent_id;
+        string title;
+        list<ParameterValue> values = [];
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record JiraInstance
+    {
+        long id;
+        string title;
+        string url;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+
+    record JiraAuth
+    {
+        long jira_id;
+        long personnel_id;
+        string username;
+        string auth_token;
+        DateTime created_at;
+        DateTime updated_at;
+    }
+}

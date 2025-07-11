@@ -1,0 +1,18 @@
+.m-topbar__userpic {
+    display: inline !important;
+
+    img {
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, .54);
+        transition: all 125ms linear;
+
+        &:hover {
+            border-color: rgba(255, 255, 255, .74);
+        }
+    }
+}
+
+.m-dropdown__wrapper {
+    /* margin-top: -15px; */
+}
+

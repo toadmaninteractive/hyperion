@@ -1,0 +1,102 @@
+.drop-center {
+    position: relative;
+    display: block;
+    //border-color: var(--primary) !important;
+    //transition: border 125ms linear;
+}
+
+.drop-center::before {
+    content: '➤';
+    font-size: 24px;
+    color: #337AB7;
+    position: absolute;
+    left: -24px;
+}
+
+.drop-above {
+    border-top: 30px solid var(--primary) !important;
+    transition: border-top 125ms linear;
+}
+
+.drop-below {
+    position: relative;
+    display: block;
+    width: 20px;
+    height: 10px;
+}
+
+.drop-below::before {
+    content: '➤';
+    font-size: 24px;
+    color: #337AB7;
+    position: absolute;
+    top: 14px;
+    left: -15px;
+}
+
+.drop-below::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    top: 31px;
+    left: 10px;
+    background-color: #337AB7;
+    animation-duration: 700ms ;
+    animation-name: slidein;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+}
+
+.drag-start {
+    border: 1px dashed var(--info);
+    color: black;
+}
+
+.drop-root {
+    border: 1px dashed var(--gray);
+    margin-left: 15px;
+    height: 30px;
+}
+
+.drag-handle {
+    cursor: grab;
+}
+
+
+.drop-parent {
+    position: fixed;
+    left: 195px;
+    z-index: 100;
+    background-color: rgba(85, 120, 235, 0.6);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    -webkit-box-shadow: 3px 3px 15px -5px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 3px 3px 15px -5px rgba(0, 0, 0, 0.75);
+    box-shadow: 3px 3px 15px -5px rgba(0, 0, 0, 0.75);
+}
+
+.drop-parent-select {
+    background-color: rgba(85, 120, 235, 1);
+    transition: linear 250ms;
+}
+
+.drop-text {
+    height: 60px;
+    padding: 45px 10px;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    font-weight: 400;
+}
+
+@keyframes slidein {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 1000%;
+    }
+}

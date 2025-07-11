@@ -1,0 +1,163 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <!--
+                        <h3 class="m-portlet__head-text"></h3>
+                        -->
+
+                        <mat-button-toggle-group appearance="legacy" [value]="currentStatus" (valueChange)="onStatusChange($event)">
+                            <mat-button-toggle [value]="statusEnum.InProgress" aria-label="Active">
+                                Active
+                            </mat-button-toggle>
+
+                            <mat-button-toggle [value]="statusEnum.Closed" aria-label="Closed">
+                                Closed
+                            </mat-button-toggle>
+                        </mat-button-toggle-group>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools search-box">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null);"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="loadItems()">
+                                <i class="la la-refresh"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding pre-wrapped">
+                <div class="m-portlet__preview p-0">
+                    <table
+                        mat-table
+                        matSort
+                        [matSortActive]="defaultOrderBy"
+                        [matSortDirection]="defaultOrderDir"
+                        matSortDisableClear
+                        [dataSource]="dataSource">
+                        <ng-container matColumnDef="id">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                ID
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 320px">
+                                <a routerLink="{{ testRun.id }}/details">
+                                    <strong *ngIf="!testRun.title">Test run #{{ testRun.id }}</strong>
+                                    <strong *ngIf="testRun.title">{{ testRun.title }}</strong>
+                                </a>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Status
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" class="text-center" style="width: 85px">
+                                <div class="m-timeline-3 x-table">
+                                    <div class="m-timeline-3__items">
+                                        <div class="m-timeline-3__item m-0" [ngClass]="badgeStatusClass(testRun.status)">
+                                            <div class="m-timeline-3__item-desc pl-2">
+                                                <span class="m-timeline-3__item-text pl-1" style="line-height: 31px" [ngSwitch]="testRun.status">
+                                                    <span *ngSwitchCase="statusEnum.Draft">Draft</span>
+                                                    <span *ngSwitchCase="statusEnum.InProgress">In Progress</span>
+                                                    <span *ngSwitchCase="statusEnum.Closed">Closed</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="progress">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Progress
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun">
+                                <ng-container *ngIf="testRun.status === statusEnum.Draft">
+                                    Not started
+                                </ng-container>
+
+                                <ng-container *ngIf="testRun.status !== statusEnum.Draft && testRun.totalItemCount === 0">
+                                    No tests are added
+                                </ng-container>
+
+                                <div style="width: auto;padding-right: 10px" *ngIf="testRun.status !== statusEnum.Draft && testRun.totalItemCount > 0">
+                                    <m-smart-progress-bar
+                                        [total]="testRun.totalItemCount"
+                                        [pending]="testRun.pendingItemCount"
+                                        [inProgress]="testRun.inProgressItemCount"
+                                        [passed]="testRun.passedItemCount"
+                                        [failed]="testRun.failedItemCount"
+                                        [blocked]="testRun.blockedItemCount">
+                                    </m-smart-progress-bar>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="createdAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Created At
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 125px">
+                                {{ testRun.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="startedAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Started At
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 125px">
+                                {{ testRun.startedAt ? (testRun.startedAt | date: 'yyyy-MM-dd HH:mm') : 'Never' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="finishedAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Finished At
+                            </th>
+
+                            <td mat-cell *matCellDef="let testRun" style="width: 125px">
+                                {{ testRun.finishedAt ? (testRun.finishedAt | date: 'yyyy-MM-dd HH:mm') : 'Never' }}
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = index"></tr>
+                    </table>
+
+                    <mat-toolbar class="b-transparent">
+                        <mat-toolbar-row>
+                            <m-test-status-legend></m-test-status-legend>
+                            <span class="toolbar-spacer" style="flex: 1 1 auto"></span>
+
+                            <mat-paginator
+                                [pageIndex]="pageIndex"
+                                [length]="total"
+                                [pageSize]="pageSize"
+                                [pageSizeOptions]="pageSizes"
+                                showFirstLastButtons>
+                            </mat-paginator>
+                        </mat-toolbar-row>
+                    </mat-toolbar>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

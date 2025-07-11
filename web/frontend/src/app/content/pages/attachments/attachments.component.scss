@@ -1,0 +1,76 @@
+.attachments-container {
+    position: relative;
+    min-height: 200px;
+}
+
+.table-container {
+    position: relative;
+    overflow: auto;
+}
+
+table {
+    width: 100%;
+}
+
+.loading-shade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 56px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Column Widths */
+
+.mat-column-filename {
+    width: 380px;
+}
+
+.mat-column-preview {
+    width: 100px;
+}
+
+.mat-column-content_type{
+    width: 250px;
+}
+
+.mat-column-created {
+    width: 200px;
+}
+
+.mat-column-filesize {
+    width: 150px;
+}
+
+.mat-column-actions {
+    width: 64px;
+}
+
+
+tr.detail-row {
+    height: 0;
+}
+
+tr.attachments-row:not(.example-expanded-row):hover {
+    background: whitesmoke;
+}
+
+tr.attachments-row:not(.example-expanded-row):active {
+    background: #efefef;
+}
+
+.attachments-row td {
+    border-bottom-width: 0;
+}
+
+.attachment-element-detail {
+    overflow: hidden;
+    display: flex;
+}
+

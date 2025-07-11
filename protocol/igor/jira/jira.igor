@@ -1,0 +1,90 @@
+[* json.enabled string.enabled]
+module JiraProtocol
+{
+    enum IssueType
+    {
+        Bug;
+    }
+
+    record Fields<T>
+    {
+        T fields;
+    }
+
+    record KeyObject<T>
+    {
+        T key;
+    }
+
+    record NameObject<T>
+    {
+        T name;
+    }
+
+    record CreateIssueRequest
+    {
+        KeyObject<string> project;
+        string summary;
+        string description;
+        NameObject<IssueType> issuetype;
+    }
+
+    record CreateIssueResponse
+    {
+        string id;
+        string key;
+        string self;
+    }
+
+    record JiraItemCollection<T>
+    {
+        int size;
+        list<T> items;
+    }
+
+    record JiraGroupEntry
+    {
+        string name;
+        string self;
+    }
+
+    record GetUserResponse
+    {
+        string self;
+        string name;
+        string emailAddress;
+        json avatarUrls;
+        string displayName;
+        bool active;
+        string timeZone;
+        JiraItemCollection<JiraGroupEntry> groups;
+        JiraItemCollection<json> applicationRoles;
+        string expand;
+    }
+
+    record JiraResponse400
+    {
+        list<string> errorMessages = [];
+        ?json errors;
+    }
+
+    record JiraResponse404
+    {
+    }
+
+    [erlang http.client]
+    webservice JiraApi
+    {
+        GetUser => GET /rest/api/2/user?username={string username}
+            ~Authorization: {string auth_token} ->
+                200: GetUserResponse,
+                400: JiraResponse400,
+                404: JiraResponse404;
+
+        CreateIssue => POST /rest/api/2/issue
+            ~Authorization: {string auth_token}
+            Fields<CreateIssueRequest> ->
+                201: CreateIssueResponse,
+                400: JiraResponse400;
+    }
+}

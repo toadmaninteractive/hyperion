@@ -1,0 +1,19 @@
+.m-portlet__preview {
+    padding-right: 0 !important;
+}
+
+::ng-deep .m-subheader {
+    padding: 15px 30px 15px 30px !important;
+}
+
+::ng-deep .m-content {
+    padding: 0 30px 20px 30px !important;
+}
+
+@media (min-width: 1025px) {
+    .m-aside-left--minimize .m-aside-menu .m-menu__nav > .m-menu__item > .m-menu__link .m-menu__link-bullet {
+        display: table-cell !important;
+        width: 76px;
+        text-align: center;
+    }
+}

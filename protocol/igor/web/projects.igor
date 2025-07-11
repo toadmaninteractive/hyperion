@@ -1,0 +1,86 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_project" hrl_file="protocol_project"]
+[ts file="project-protocol.data.ts"]
+module ProjectProtocol
+{
+    record CreateProjectRequest
+    {
+        string title;
+        string key;
+        ?long jira_id;
+        ?string jira_key;
+        ?string slack_receivers;
+    }
+
+    [* patch_record]
+    record UpdateProjectRequest
+    {
+        string title;
+        string key;
+        ?long jira_id;
+        ?string jira_key;
+        ?string slack_receivers;
+    }
+
+    enum ProjectError
+    {
+        invalid_title;
+        title_already_exists;
+        invalid_key;
+        key_already_exists;
+        invalid_slack_receivers;
+        owner_not_exists;
+        jira_not_exists;
+    }
+
+    [erlang http.server]
+    [ts http.client file="project-protocol.service.ts"]
+    webservice HyperionProjectService
+    {
+        [erlang http.handler="rest/generated/web_rest_projects" http.callback="web_rest_callback_project" http.cowboy_req]
+        GetProjects => GET /api/projects ->
+            200: Collection<Project>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_project" http.callback="web_rest_callback_project"]
+        GetProject => GET /api/projects/{long id} ->
+            200: Project,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_projects" http.callback="web_rest_callback_project" http.cowboy_req]
+        CreateProject => POST /api/projects CreateProjectRequest ->
+            200: Project,
+            400: BadRequestError<ProjectError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_project" http.callback="web_rest_callback_project" http.cowboy_req]
+        UpdateProject => PUT /api/projects/{long id} UpdateProjectRequest ->
+            200: Project,
+            400: BadRequestError<ProjectError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_project" http.callback="web_rest_callback_project" http.cowboy_req]
+        DeleteProject => DELETE /api/projects/{long id} ->
+            200: GenericResponse,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_project_roles_me" http.callback="web_rest_callback_admin_personnel_roles" http.cowboy_req]
+        GetMyRolesForProject => GET /api/projects/{long id}/roles/me ->
+            200: {PersonnelAccountRole response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

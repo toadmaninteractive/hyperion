@@ -1,0 +1,59 @@
+using CommonProtocol;
+using DataProtocol;
+using DbProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_auth" hrl_file="protocol_auth"]
+[ts file="auth-protocol.data.ts"]
+module AuthProtocol
+{
+    record PersonnelStatusResponse
+    {
+        bool logged_in;
+        ?long user_id;
+        ?string email;
+        ?string username;
+    }
+
+    record PersonnelLoginRequest
+    {
+        string username;
+        string password;
+    }
+
+    enum PersonnelLoginError
+    {
+        failure;
+        already_logged_in;
+        account_not_exists;
+        account_is_blocked;
+        account_is_deleted;
+        invalid_password;
+    }
+
+    record PersonnelLoginResponse: IResult
+    {
+        ?PersonnelLoginError error;
+        ?string session_id;
+        ?long user_id;
+        ?string email;
+        ?string username;
+    }
+
+    [erlang http.server http.cowboy_req]
+    [ts http.client file="auth-protocol.service.ts"]
+    webservice HyperionAuthService
+    {
+        [erlang http.handler="rest/generated/web_rest_auth_personnel_status" http.callback="web_rest_callback_personnel"]
+        GetPersonnelStatus => GET /api/auth/personnel/status -> {PersonnelStatusResponse response};
+
+        [erlang http.handler="rest/generated/web_rest_auth_personnel_login" http.callback="web_rest_callback_personnel"]
+        LoginPersonnel => POST /api/auth/personnel/login {PersonnelLoginRequest request} -> {PersonnelLoginResponse response};
+
+        [erlang http.handler="rest/generated/web_rest_auth_personnel_logout" http.callback="web_rest_callback_personnel"]
+        LogoutPersonnel => PUT /api/auth/personnel/logout {Empty request} -> {GenericResponse response};
+
+        [erlang http.handler="rest/generated/web_rest_auth_personnel_profile" http.callback="web_rest_callback_personnel"]
+        GetMyPersonnelProfile => GET /api/auth/personnel/profile -> {PersonnelAccountProfile response};
+    }
+}

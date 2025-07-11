@@ -1,0 +1,653 @@
+<mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="addDraftTreeNode(true)">
+        <mat-icon>folder</mat-icon>
+        <span>Add test group</span>
+    </button>
+
+    <button mat-menu-item (click)="addDraftTreeNode(false)">
+        <mat-icon>assignment</mat-icon>
+        <span>Add test case</span>
+    </button>
+</mat-menu>
+
+<div class="m-portlet mb-0">
+    <div class="m-portlet__head compact align-items-center">
+        <div class="d-inline-flex">
+            <div>
+                <button
+                    mat-raised-button
+                    [matMenuTriggerFor]="menu"
+                    color="primary"
+                    (click)="lastNodeId = 0"
+                    [disabled]="treeNodeHasDraftChildren(null)">
+                    Add test item
+                </button>
+            </div>
+
+            <div class="ml-2 m-button-group">
+                <button mat-raised-button (click)="collapseAllTreeNodes()">Collapse</button>
+                <button mat-raised-button (click)="expandAllTreeNodes()">Expand</button>
+            </div>
+        </div>
+
+        <div class="m-portlet__head-tools">
+            <ul class="m-portlet__nav">
+                <li *ngIf="ready$ | async">
+                    <div class="pr-2">
+                        <mat-form-field floatLabel="never" style="width: 300px">
+                            <input matInput placeholder="Type to filter..."
+                                   (keyup)="applyFilter($event.target.value)">
+                        </mat-form-field>
+                    </div>
+                </li>
+
+                <li class="m-portlet__nav-item">
+                    <a
+                        href="javascript:void(null);"
+                        class="m-portlet__nav-link m-portlet__nav-link--icon"
+                        title="Refresh"
+                        matTooltip="Click to refresh"
+                        matTooltipPosition="above"
+                        (click)="refresh()">
+                        <i class="las la-sync"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="d-flex">
+        <as-split unit="percent" direction="horizontal">
+            <as-split-area [size]="activeNode ? 70 : 100">
+                <div
+                    [class.darken]='activeNode'
+                    class="pt-2 col-12 left-split-content">
+                    <perfect-scrollbar style="height: 70vh">
+                        <m-dynamic-tree-map
+                            [inputNodes$]="testCaseService.testCaseTree$"
+                            [hiddenNodeSet]="hiddenNodeSetId"
+                            [dimmedNodeSet]="dimmedNodeSetId"
+                            [canDrag]="true"
+                            (nodeAdded)="addDraftTreeNode($event)"
+                            (nodeRemoved)="deleteTestCase($event)"
+                            (nodeModified)="updateAfterDrop($event)"
+                            (showNotification)="showNotification($event)"
+                            (treeRendered)="afterTreeRendered($event)">
+                            <ng-template #nodeTitleTemplate let-node="node">
+                                <input
+                                    type="text"
+                                    id="input-testcase-{{ node.item.id }}"
+                                    class="monospace new-in-place"
+                                    style="max-width: 100ch !important; padding-left: 5px !important;"
+                                    [class.changed]="node.item.id === 0 || (pristineTestCaseMap.get(node.item.id) && node.item.title !== pristineTestCaseMap.get(node.item.id).title)"
+                                    [class.draft]="node.item.isDraft"
+                                    [class.m-selected]="activeNode && node.item.id === activeNode.item.id"
+                                    [style.width.ch]="node.item.title.length ? node.item.title.length + 2 : 15"
+                                    [placeholder]="node.item.title.length === 0 ? 'Test case title' : null"
+                                    [(ngModel)]="node.item.title"
+                                    (click)="node.item.id > 0 ? setActiveTreeNode(node) : null;"
+                                    (keyup.escape)="revertTreeNode(node); $event.target.blur()"
+                                    (keyup.enter)="$event.target.blur()"
+                                    (blur)="invalidateTreeNode(node, node.item.id === 0 ? null : 'title', $event.target.value);">
+
+                                <i
+                                    *ngIf="tooltipTextShow(node)"
+                                    class="las la-exclamation-triangle c-warning f-s-20"
+                                    [matTooltip]="tooltipTextShow(node)"
+                                    matTooltipPosition="above">
+                                </i>
+                            </ng-template>
+
+                            <ng-template #addButtonTemplate let-node="node">
+
+                                <button
+                                    class="icon-button"
+                                    color="primary"
+                                    matTooltip="Click to add a child"
+                                    matTooltipPosition="above"
+                                    [matMenuTriggerFor]="menu"
+                                    (click)="node.expanded = true; lastNodeId = node.item.id"
+                                    [disabled]="treeNodeHasDraftChildren(node)"
+                                    *ngIf="node.item.id > 0 && node.item.isGroup">
+                                    <i class="las la-plus cursor-pointer blue f-s-20"></i>
+                                </button>
+
+                            </ng-template>
+                        </m-dynamic-tree-map>
+                    </perfect-scrollbar>
+                </div>
+            </as-split-area>
+
+            <as-split-area [size]="activeNode ? 30 : 0" *ngIf="activeNode && !createState">
+                <div class="col pt-3 pl-2 pr-2 right-split-content">
+                    <perfect-scrollbar style="height: 70vh">
+                        <div class="sticky-block">
+                            <div class="title-container">
+                                <input
+                                    matInput
+                                    type="text"
+                                    class="form-control inline-block"
+                                    style="max-width: 65%"
+                                    [class.changed]="treeNodeChanged(activeNode, 'title')"
+                                    [placeholder]="activeNode.item.title.length === 0 ? 'Parameter title' : null"
+                                    [(ngModel)]="activeNode.item.title"
+                                    (keyup.escape)="revertTreeNodeTitle(activeNode); $event.target.blur()"
+                                    (blur)="invalidateTreeNode(activeNode, 'title')">
+
+                                <div class="block text-right" style="width: 35%">
+                                    <div class="" (click)="resetActiveTreeNode()">
+                                        <i class="las la-times"></i>
+                                    </div>
+                                </div>
+
+                                <div class="block text-left" style="width: 50%;">
+                                        <span class="sticky-id dimmed">
+                                            #{{ activeNode.item.id }}
+                                        </span>
+                                </div>
+
+                                <div class="block" style="width: 50%;">
+                                </div>
+
+                                <div class="f-s-13 f-w-400">
+                                    <mat-checkbox
+                                        color="primary"
+                                        [(ngModel)]="activeNode.item.isDraft"
+                                        (change)="invalidateTreeNode(activeNode, 'isDraft')">
+                                        Draft
+                                    </mat-checkbox>
+                                </div>
+                            </div>
+
+                            <ul class="basic-tree pl-0">
+                                <li>
+                                    <label class="f-w-600 block pb-1">Description</label>
+
+                                    <textarea
+                                        matInput
+                                        matTextareaAutosize
+                                        matAutosizeMinRows="2"
+                                        matAutosizeMaxRows="4"
+                                        class="form-control"
+                                        [class.changed]="treeNodeChanged(activeNode, 'description')"
+                                        placeholder="Put some text here"
+                                        [(ngModel)]="activeNode.item.description"
+                                        (keyup.escape)="revertTreeNodeDescription(activeNode); $event.target.blur()"
+                                        (blur)="invalidateTreeNode(activeNode, 'description')">
+                                    </textarea>
+                                    <div class="input-border"></div>
+                                </li>
+
+                                <li>
+                                    <label class="f-w-600 block mb-0">
+                                        Test {{ activeNode.item.isGroup ? 'group' : 'case' }} title
+                                    </label>
+
+                                    <input
+                                        matInput
+                                        type="text"
+                                        class="form-control"
+                                        [class.changed]="treeNodeChanged(activeNode, 'title')"
+                                        [placeholder]="activeNode.item.title.length === 0 ? 'Put some text here' : null"
+                                        [style.width.ch]="activeNode.item.title.length ? activeNode.item.title.length + 2 : 20"
+                                        [(ngModel)]="activeNode.item.title"
+                                        (keyup.escape)="revertTreeNodeTitle(activeNode); $event.target.blur()"
+                                        (keyup.enter)="$event.target.blur()"
+                                        (blur)="invalidateTreeNode(activeNode, 'title')">
+                                </li>
+
+                                <li>
+                                    <div class="row m-0">
+                                        <label class="f-w-600 block">
+                                            Precondition
+                                            <a href="javascript:void(null)" class="ml-2 f-w-400"
+                                               (click)="showBrowsePreconditionDialog(activeNode)">
+                                                change
+                                            </a>
+                                        </label>
+
+                                        <ng-container
+                                            *ngIf="activeNodePrecondition?.length !== 0 && activeNode.item.preconditionId !== null">
+                                            <label class="c-gray ml-1 f-w-300">|</label>
+
+                                            <label class="f-w-600 block">
+                                                <a href="javascript:void(null)" class="ml-1 f-w-400 c-error"
+                                                   (click)="clearPrecondition()">
+                                                    clear
+                                                </a>
+                                            </label>
+                                        </ng-container>
+                                    </div>
+
+                                    <label class="f-w-400">
+                                        <ng-container
+                                            *ngIf="!activeNode.item.preconditionId && inheritedPreconditionTestCase">
+                                            <span *ngIf="activeNodePrecondition?.length > 0">
+                                                Inherited from
+                                                <strong class="c-info f-w-500">
+                                                    {{ inheritedPreconditionTestCase.title }}
+                                                </strong>
+                                            </span>
+                                        </ng-container>
+
+                                        <span
+                                            *ngIf="activeNodePrecondition?.length === 0"
+                                            class="dimmed">
+                                            Not set
+                                        </span>
+
+                                        <ul class="pl-0" *ngIf="activeNodePrecondition?.length > 0">
+                                            <li *ngFor="let item of activeNodePrecondition; index as stepIndex">
+                                                <div class="d-table-row">
+                                                    <div class="d-table-cell m--valign-top">
+                                                        <mat-icon class="c-info">
+                                                            subdirectory_arrow_right
+                                                        </mat-icon>
+                                                    </div>
+
+                                                    <div class="d-table-cell">
+                                                        <span
+                                                            class="inline-block medium-line align-text-bottom">{{ item.title }}</span>
+                                                    </div>
+
+                                                    <div class="d-table-cell m--valign-top" style="padding-top: 3px">
+                                                        <mat-icon
+                                                            class="c-error align-text-bottom ml-1 clickable animate"
+                                                            [class.f-w-600]="item['$hovered']"
+                                                            (mouseover)="item['$hovered'] = true"
+                                                            (mouseout)="item['$hovered'] = false"
+                                                            style="height: 21px"
+                                                            (click)="removePreconditionStep(item)"
+                                                            *ngIf="stepIndex > 0">
+                                                            close
+                                                        </mat-icon>
+                                                    </div>
+                                                </div>
+                                            </li>
+
+                                            <li>
+                                                <a
+                                                    href="javascript:void(null)"
+                                                    class="f-w-400"
+                                                    (click)="showBrowsePreconditionDialog(activeNode, activeNodePrecondition[activeNodePrecondition.length - 1])"
+                                                    *ngIf="activeNode.item.preconditionId !== null">
+                                                    <mat-icon class="c-success align-text-bottom f-w-600 narrow-icon">
+                                                        add
+                                                    </mat-icon><!--
+                                                    -->Add another step...
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </label>
+                                </li>
+
+                                <li>
+                                    <div class="row m-0">
+                                        <label class="f-w-600 block">
+                                            Setup
+                                            <a href="javascript:void(null)" class="ml-2 f-w-400"
+                                               (click)="showBrowseSetupDialog(activeNode)">
+                                                change
+                                            </a>
+                                        </label>
+
+                                        <ng-container
+                                            *ngIf="activeNodeSetup?.length !== 0 && activeNode.item.setupId !== null">
+                                            <label class="c-gray ml-1 f-w-300">|</label>
+
+                                            <label class="f-w-600 block">
+                                                <a href="javascript:void(null)" class="ml-1 f-w-400 c-error"
+                                                   (click)="clearSetup()">
+                                                    clear
+                                                </a>
+                                            </label>
+                                        </ng-container>
+                                    </div>
+
+                                    <label class="f-w-400">
+                                        <ng-container
+                                            *ngIf="!activeNode.item.setupId && inheritedSetupTestCase">
+                                            <span *ngIf="activeNodeSetup?.length > 0">
+                                                Inherited from
+                                                <strong class="c-info f-w-500">
+                                                    {{ inheritedSetupTestCase.title }}
+                                                </strong>
+                                            </span>
+                                        </ng-container>
+
+                                        <span class="dimmed"
+                                              *ngIf="activeNodeSetup?.length === 0">
+                                            Not set
+                                        </span>
+
+                                        <ul class="pl-0" *ngIf="activeNodeSetup?.length > 0">
+                                            <li *ngFor="let setupItem of activeNodeSetup; index as stepIndex">
+                                                <div class="d-table-row">
+                                                    <div class="d-table-cell m--valign-top">
+                                                        <mat-icon class="c-info">
+                                                            subdirectory_arrow_right
+                                                        </mat-icon>
+                                                    </div>
+
+                                                    <div class="d-table-cell">
+                                                        <span class="medium-line align-text-bottom">
+                                                            {{ setupItem.title }}
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="d-table-cell">
+                                                        <mat-icon
+                                                            class="c-error m--valign-top align-text-bottom ml-1 clickable animate"
+                                                            style="padding-top: 3px"
+                                                            [class.f-w-600]="setupItem['$hovered']"
+                                                            (mouseover)="setupItem['$hovered'] = true"
+                                                            (mouseout)="setupItem['$hovered'] = false"
+                                                            (click)="removeSetupStep(setupItem)"
+                                                            *ngIf="stepIndex > 0">
+                                                            close
+                                                        </mat-icon>
+                                                    </div>
+
+                                                    <div
+                                                        class="d-table-cell"
+                                                        *ngIf="setupItem && setupItem.parameterId">
+                                                        <mat-icon [inline]="true" class="c-gray mr-2">
+                                                            link
+                                                        </mat-icon>
+
+                                                        <a [ngSwitch]="getSpec(setupItem.id).specType"
+                                                           *ngIf="!this.showMoreParamMap.get(setupItem.id) && getSpec(setupItem.id)"
+                                                           class="f-w-400"
+                                                           href="javascript:void(null)"
+                                                           (click)="inheritedSetupTestCase ? null : showMoreParamMap.set(setupItem.id, true)">
+                                                            <span class="medium-line align-text-bottom">
+                                                                <ng-container
+                                                                    *ngSwitchCase="specTypeEnum.Value">{{ getSpec(setupItem.id).value }}</ng-container>
+                                                                <ng-container
+                                                                    *ngSwitchCase="specTypeEnum.Source">{{ flatParameter.get(getSpec(setupItem.id).parameterId) ? flatParameter.get(getSpec(setupItem.id).parameterId).title : '' }}</ng-container>
+                                                                <ng-container
+                                                                    *ngSwitchCase="specTypeEnum.Any">Any</ng-container>
+                                                                <ng-container
+                                                                    *ngSwitchCase="specTypeEnum.Random">Random</ng-container>
+                                                                <ng-container
+                                                                    *ngSwitchDefault>{{ flatParameter.get(setupItem.parameterId).title }}</ng-container>
+                                                            </span>
+                                                        </a>
+
+                                                        <a *ngIf="!this.showMoreParamMap.get(setupItem.id) && !getSpec(setupItem.id)"
+                                                           class="f-w-400"
+                                                           [attr.href]="inheritedSetupTestCase ? null : ('javascript:void(null)' | safe:'url')"
+                                                           (click)="inheritedSetupTestCase ? null : showMoreParamMap.set(setupItem.id, true)">
+                                                            <span
+                                                                class="medium-line align-text-bottom">Unspecialized</span>
+                                                        </a>
+
+                                                        <ng-container *ngIf="showMoreParamMap.get(setupItem.id)">
+                                                            <mat-select
+                                                                class="param-select"
+                                                                placeholder="Select parameter"
+                                                                [value]="getSpecValue(setupItem.id)"
+                                                                (selectionChange)="specializeParam($event.value, setupItem.id)"
+                                                                (openedChange)="$event ? null : showMoreParamMap.set(setupItem.id, false)">
+
+                                                                <mat-option
+                                                                    [value]="specTypeEnum.Any + '|' + 'any'">
+                                                                    Any
+                                                                </mat-option>
+
+                                                                <mat-divider></mat-divider>
+
+                                                                <mat-optgroup label="Values"
+                                                                              *ngIf="flatParameter.get(setupItem.parameterId).values.length > 0">
+                                                                    <mat-option
+                                                                        *ngFor="let param of getParameters(setupItem.parameterId)"
+                                                                        [value]="specTypeEnum.Value + '|' + param.value">
+                                                                        {{ param.value }}
+                                                                        <ng-container *ngIf="param.dependentValue"><i
+                                                                            class="la la-link"></i> {{ param.dependentValue }}
+                                                                        </ng-container>
+                                                                    </mat-option>
+                                                                </mat-optgroup>
+
+                                                                <mat-divider></mat-divider>
+
+                                                                <mat-optgroup label="Sources"
+                                                                              *ngIf="levelParamMap.get(setupItem.id).length > 0">
+                                                                    <mat-option
+                                                                        *ngFor="let param of levelParamMap.get(setupItem.id)"
+                                                                        [value]="specTypeEnum.Source + '|' + param.item.id"
+                                                                        [innerHTML]="param.item.title | safe: 'html'">
+                                                                    </mat-option>
+                                                                </mat-optgroup>
+                                                            </mat-select>
+                                                        </ng-container>
+
+                                                        <!--<mat-icon-->
+                                                        <!--*ngIf="!this.showMoreParamMap.get(setupItem.id) && getSpec(setupItem.id) "-->
+                                                        <!--class="c-error align-text-bottom ml-1 clickable animate"-->
+                                                        <!--style="height: 22px"-->
+                                                        <!--(click)="despecializeParam(setupItem.id)">-->
+                                                        <!--delete-->
+                                                        <!--</mat-icon>-->
+                                                    </div>
+                                                </div>
+                                            </li>
+
+                                            <li>
+                                                <a
+                                                    href="javascript:void(null)"
+                                                    class="f-w-400"
+                                                    *ngIf="activeNode.item.setupId !== null"
+                                                    (click)="showBrowseSetupDialog(activeNode, activeNodeSetup[activeNodeSetup.length - 1])">
+                                                    <mat-icon class="c-success align-text-bottom f-w-600 narrow-icon">
+                                                        add
+                                                    </mat-icon><!--
+                                                    -->Add another step...
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </label>
+                                </li>
+
+                                <li *ngIf="!activeNode.item.isGroup">
+                                    <label class="f-w-600 block">Test steps</label>
+
+                                    <textarea
+                                        matInput
+                                        matTextareaAutosize
+                                        matAutosizeMinRows="2"
+                                        matAutosizeMaxRows="4"
+                                        class="form-control"
+                                        placeholder="Put some text here"
+                                        [class.changed]="treeNodeChanged(activeNode, 'testSteps')"
+                                        [(ngModel)]="activeNode.item.testSteps"
+                                        (keyup.escape)="revertTreeNodeTestSteps(activeNode); $event.target.blur()"
+                                        (blur)="invalidateTreeNode(activeNode, 'testSteps')">
+                                    </textarea>
+                                    <div class="textarea-border"></div>
+                                </li>
+
+                                <li *ngIf="!activeNode.item.isGroup">
+                                    <label class="f-w-600 block">Expected result</label>
+
+                                    <textarea
+                                        matInput
+                                        matTextareaAutosize
+                                        matAutosizeMinRows="2"
+                                        matAutosizeMaxRows="4"
+                                        class="form-control"
+                                        [class.changed]="treeNodeChanged(activeNode, 'expectedResult')"
+                                        placeholder="Put some text here"
+                                        [(ngModel)]="activeNode.item.expectedResult"
+                                        (keyup.escape)="revertTreeNodeExpectedResult(activeNode); $event.target.blur()"
+                                        (blur)="invalidateTreeNode(activeNode, 'expectedResult')">
+                                    </textarea>
+                                    <div class="textarea-border"></div>
+                                </li>
+
+                                <li>
+                                    <div class="row">
+                                        <div class="col-md-12 mini">
+                                            <label class="f-w-600 block mb-0">Attachments</label>
+
+                                            <div class="row">
+                                                <div class="col-md-12 mt-1"
+                                                     style="display: flex; flex-wrap: wrap">
+                                                    <ng-container *ngIf="activeFileAttachments?.length > 0">
+                                                        <ng-container
+                                                            [ngTemplateOutlet]="(activeFileAttachments?.length > 3 && showMoreAttachments) ? moreAttachments : lessAttachments">
+                                                        </ng-container>
+                                                    </ng-container>
+
+                                                    <ng-container
+                                                        [ngTemplateOutlet]="activeFileAttachments?.length === 0 ? uploadButton: null"></ng-container>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li *ngIf="activeNode.item.id > 0">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="f-w-600 block mb-0">Created At</label>
+
+                                            <input
+                                                matInput
+                                                type="text"
+                                                class="form-control"
+                                                readonly
+                                                value="{{ activeNode.item.createdAt | date: 'yyyy-MM-dd HH:mm' }}">
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="f-w-600 block mb-0">Updated At</label>
+
+                                            <input
+                                                matInput
+                                                type="text"
+                                                class="form-control"
+                                                readonly
+                                                value="{{ activeNode.item.updatedAt | date: 'yyyy-MM-dd HH:mm' }}">
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </perfect-scrollbar>
+                </div>
+            </as-split-area>
+        </as-split>
+    </div>
+</div>
+
+<swal #afterDropDialog [swalOptions]="afterDropOptions"></swal>
+
+<ng-template #lessAttachments>
+    <div class="row m-0">
+        <ng-container *ngFor="let item of activeFileAttachments; let i = index">
+
+            <div *ngIf="i < 3"
+                 class="thumb mr-1 mb-1 inline-block animate clickable"
+                 [matTooltip]="item.originalFilename"
+                 matTooltipPosition="above">
+                <ng-container [ngSwitch]="!!item.thumbFilename">
+                    <img src="/download/attachments/{{ item.thumbFilename }}" (click)="openGallery(i)"
+                         *ngSwitchCase="true">
+
+                    <a href="/download/attachments/{{ item.filename }}" target="_blank"
+                       [ngSwitch]="!!item.thumbFilename">
+                        <div class="placeholder inline-block" *ngSwitchCase="false">File</div>
+                    </a>
+                </ng-container>
+
+                <div
+                    class="delete animate"
+                    (confirm)="unlinkFileAttachment(item.id, this.activeNode.item.id)"
+                    [swal]="{
+                        title: 'Confirmation',
+                        html: 'Delete <b>'+ item.originalFilename + '</b>?',
+                        type: 'question',
+                        confirmButtonText: 'Delete',
+                        confirmButtonColor: '#f4516c',
+                        confirmButtonClass: 'btn-danger',
+                        showCancelButton: true,
+                        heightAuto: false
+                    }">
+
+                    <mat-icon class="animate c-white">clear</mat-icon>
+                </div>
+            </div>
+        </ng-container>
+
+        <div
+            class="attachment-count-container clickable mr-1 mb-1 animate"
+            (click)="showMoreAttachments = !showMoreAttachments" *ngIf="activeFileAttachments?.length > 3">
+            <div class="attachment-count-label animate"> + {{ activeFileAttachments?.length - 3 }} </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="uploadButton"></ng-container>
+    </div>
+</ng-template>
+
+<ng-template #moreAttachments>
+    <div
+        class="thumb mr-1 mb-1 inline-block animate clickable"
+        *ngFor="let item of activeFileAttachments; let i = index"
+        [matTooltip]="item.originalFilename"
+        matTooltipPosition="above">
+        <ng-container [ngSwitch]="!!item.thumbFilename">
+            <img src="/download/attachments/{{ item.thumbFilename }}" (click)="openGallery(i)" *ngSwitchCase="true">
+
+            <a href="/download/attachments/{{ item.filename }}" target="_blank" [ngSwitch]="!!item.thumbFilename">
+                <div class="placeholder inline-block" *ngSwitchCase="false">File</div>
+            </a>
+        </ng-container>
+
+        <div
+            class="delete animate"
+            (confirm)="unlinkFileAttachment(item.id, this.activeNode.item.id)"
+            [swal]="{
+                title: 'Confirmation',
+                html: 'Delete <b>'+ item.originalFilename + '</b>?',
+                type: 'question',
+                confirmButtonText: 'Delete',
+                confirmButtonColor: '#f4516c',
+                confirmButtonClass: 'btn-danger',
+                showCancelButton: true,
+                heightAuto: false
+            }">
+            <mat-icon class="animate c-white">clear</mat-icon>
+        </div>
+    </div>
+
+    <ng-container *ngTemplateOutlet="uploadButton"></ng-container>
+</ng-template>
+
+<ng-template #uploadButton>
+    <ng-container *ngFor="let item of attachmentsProgress | keyvalue">
+        <div class="progress-container mr-1 mb-1" *ngIf="item.value | async">
+            <mat-progress-spinner
+                color="primary"
+                mode="determinate"
+                [value]="item.value | async">
+            </mat-progress-spinner>
+
+            <div class="progress-percent">{{ item.value | async }}%</div>
+        </div>
+    </ng-container>
+
+    <div class="uploader compact inline-block clickable mb-1">
+        <ngx-file-drop
+            dropZoneLabel="Drop files here"
+            (onFileDrop)="dropped($event)"
+            (onFileOver)="fileOver($event)"
+            (onFileLeave)="fileLeave($event)">
+            <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+                <button mat-icon-button color="primary" class="animate" (click)="openFileSelector()">
+                    <mat-icon class="animate">add</mat-icon>
+                </button>
+            </ng-template>
+        </ngx-file-drop>
+    </div>
+</ng-template>

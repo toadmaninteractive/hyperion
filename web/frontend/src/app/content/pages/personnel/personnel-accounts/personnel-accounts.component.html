@@ -1,0 +1,183 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            <!-- Manage personnel accounts -->
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <div class="pr-2">
+                                <mat-form-field floatLabel="never" style="width: 300px">
+                                    <input
+                                        matInput
+                                        placeholder="Type to filter..."
+                                        [value]="needle$ | async"
+                                        (keyup)="onNeedleChange($event.target.value)" />
+                                </mat-form-field>
+                            </div>
+                        </li>
+
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null)"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="onReload()">
+                                <i class="la la-refresh"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding">
+                <div class="m-portlet__preview p-0">
+                    <table
+                        class="table-hover"
+                        mat-table
+                        [dataSource]="dataSource$ | async"
+                        matSort
+                        [matSortActive]="(sort$ | async).active"
+                        [matSortDirection]="(sort$ | async).direction"
+                        matSortDisableClear
+                        (matSortChange)="onSortChange($event)">
+                        <!-- ID column -->
+                        <ng-container [matColumnDef]="column.Id">
+                            <th mat-header-cell mat-sort-header class="cell-id" *matHeaderCellDef>
+                                ID
+                            </th>
+
+                            <td mat-cell *matCellDef="let account" class="cell-id" [class.deleted]="account.isDeleted">
+                                <span class="poppins f-w-400">
+                                    {{ account.id }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Username column -->
+                        <ng-container [matColumnDef]="column.Username">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>
+                                Username
+                            </th>
+
+                            <td mat-cell *matCellDef="let account">
+                                <div class="m-timeline-3 x-table x-avatar">
+                                    <div class="m-timeline-3__items">
+                                        <div class="m-timeline-3__item m-0" [ngClass]="personnelAccountBadgeClass(account)">
+                                            <span class="m-timeline-3__item-time text-left">
+                                                <m-gravatar [email]="account.username" [size]="32" [radius]="4" defaultSet="identicon"></m-gravatar>
+                                            </span>
+
+                                            <div class="m-timeline-3__item-desc">
+                                                <span class="m-timeline-3__item-text user-line">
+                                                    <a [routerLink]="account.username" matTooltip="Click to edit" matTooltipPosition="above">
+                                                        <strong>{{ account.username }}</strong>
+                                                    </a>
+
+                                                    <mat-icon
+                                                        [inline]="true"
+                                                        class="v-a-middle ml-05 gold"
+                                                        matTooltip="Super&nbsp;Administrator: no restrictions applied ever"
+                                                        matTooltipPosition="above"
+                                                        *ngIf="account.isSuperadmin">
+                                                        star
+                                                    </mat-icon>
+                                                </span>
+
+                                                <br>
+
+                                                <span class="m-timeline-3__item-user-name">
+                                                    <small class="m-timeline-3__item-text" [ngClass]="{ dimmed: !account.name }">
+                                                        {{ account.name || 'Name not set'}}
+                                                    </small>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Blocked column -->
+                        <ng-container [matColumnDef]="column.IsBlocked">
+                            <th mat-header-cell mat-sort-header class="cell-checkbox" *matHeaderCellDef>
+                                Blocked
+                            </th>
+
+                            <td mat-cell *matCellDef="let account">
+                                {{ account.isBlocked ? 'Yes' : 'No' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Deleted column -->
+                        <ng-container [matColumnDef]="column.IsDeleted">
+                            <th mat-header-cell mat-sort-header class="cell-checkbox" *matHeaderCellDef>
+                                Deleted
+                            </th>
+
+                            <td mat-cell *matCellDef="let account">
+                                {{ account.isDeleted ? 'Yes' : 'No' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Date Added column -->
+                        <ng-container [matColumnDef]="column.CreatedAt">
+                            <th mat-header-cell mat-sort-header class="cell-datetime" *matHeaderCellDef>
+                                Date Added
+                            </th>
+
+                            <td mat-cell *matCellDef="let account">
+                                {{ account.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Date Updated column -->
+                        <ng-container [matColumnDef]="column.UpdatedAt">
+                            <th mat-header-cell mat-sort-header class="cell-datetime" *matHeaderCellDef>
+                                Date Updated
+                            </th>
+
+                            <td mat-cell *matCellDef="let account">
+                                {{ account.updatedAt ? (account.updatedAt | date: 'yyyy-MM-dd HH:mm') : 'Never' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Table rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+                        <tr
+                            mat-row
+                            *matRowDef="let row; columns: displayedColumns"
+                            [class.dimmed]="loading$ | async"
+                            [class.deleted]="row.isDeleted">
+                        </tr>
+                    </table>
+
+                    <div class="card card-body blank p-0 table-row" *ngIf="(dataSource$ | async)?.data?.length === 0">
+                        <div class="inner-text f-s-14 f-w-400" [class.dimmed]="!(loading$ |async)">
+                            {{ (loading$ |async) ? 'Loading data from server...' : 'No data to display' }}
+                        </div>
+                    </div>
+
+                    <mat-paginator
+                        [length]="total$ | async"
+                        [pageSize]="(page$ | async).pageSize"
+                        [pageSizeOptions]="pageSizes"
+                        [pageIndex]="(page$ | async).pageIndex"
+                        (page)="onPageChange($event)"
+                        showFirstLastButtons>
+                    </mat-paginator>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

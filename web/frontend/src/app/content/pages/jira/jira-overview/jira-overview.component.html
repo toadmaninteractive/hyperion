@@ -1,0 +1,157 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            <button mat-raised-button color="primary" (click)="showJiraCreateDialog()">
+                                Add JIRA instance
+                            </button>
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <div class="pr-2">
+                                <mat-form-field floatLabel="never" style="width: 300px">
+                                    <input placeholder="Type to filter..." matInput (keyup)="applyFilter($event.target.value)" />
+                                </mat-form-field>
+                            </div>
+                        </li>
+
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null);"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="refresh()">
+                                <i class="la la-refresh"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding" >
+                <div class="m-portlet__preview p-0" *ngIf="ready$ | async">
+                    <table
+                        mat-table
+                        [dataSource]="dataSource"
+                        matSort
+                        [matSortActive]="column.Title"
+                        [matSortDirection]="sortDir"
+                        matSortDisableClear>
+                        <!-- ID column -->
+                        <ng-container [matColumnDef]="column.Id">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                ID
+                            </th>
+
+                            <td mat-cell *matCellDef="let jira" style="width: 100px">
+                                <strong>{{ jira.id }}</strong>
+                            </td>
+                        </ng-container>
+
+                        <!-- JIRA Title column -->
+                        <ng-container [matColumnDef]="column.Title">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                JIRA Title
+                            </th>
+
+                            <td mat-cell *matCellDef="let jira">
+                                <strong>{{ jira.title }}</strong>
+                            </td>
+                        </ng-container>
+
+                        <!-- JIRA Base URL column -->
+                        <ng-container [matColumnDef]="column.Url">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                JIRA Base URL
+                            </th>
+
+                            <td mat-cell *matCellDef="let jira">
+                                <a [href]="jira.url" target="_blank" matTooltip="Click to open" matTooltipPosition="above">
+                                    <strong>{{ jira.url }}</strong>
+                                </a>
+                            </td>
+                        </ng-container>
+
+                        <!-- Created At column -->
+                        <ng-container [matColumnDef]="column.CreatedAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Created At
+                            </th>
+
+                            <td mat-cell *matCellDef="let jira" style="width: 125px">
+                                {{ jira.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Updated At column -->
+                        <ng-container [matColumnDef]="column.UpdatedAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Updated At
+                            </th>
+
+                            <td mat-cell *matCellDef="let jira" style="width: 125px">
+                                {{ jira.updatedAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Actions column -->
+                        <ng-container [matColumnDef]="column.Actions">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Actions
+                            </th>
+
+                            <td mat-cell *matCellDef="let jira" style="width: 125px">
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Click to edit"
+                                    matTooltipPosition="above"
+                                    (click)="showJiraEditDialog(jira)">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+
+                                <button
+                                    mat-icon-button
+                                    color="warn"
+                                    matTooltip="Click to delete"
+                                    matTooltipPosition="above"
+                                    [swal]="{
+                                        title: 'Confirmation',
+                                        html: 'Delete <b>'+ jira.title + '</b>?',
+                                        type: 'question',
+                                        confirmButtonText: 'Delete',
+                                        confirmButtonColor: '#f4516c',
+                                        confirmButtonClass: 'btn-danger',
+                                        showCancelButton: true,
+                                        heightAuto: false
+                                    }"
+                                    (confirm)="deleteJiraInstance(jira)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <!-- Table rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                    </table>
+
+                    <mat-paginator
+                        [length]="dataSource.filteredData.length"
+                        [pageSize]="pageSize"
+                        [pageSizeOptions]="pageSizes"
+                        showFirstLastButtons>
+                    </mat-paginator>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

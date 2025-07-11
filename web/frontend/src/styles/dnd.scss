@@ -1,0 +1,37 @@
+.uploader.compact {
+    width: 100px;
+    height: 100px;
+
+    ngx-file-drop {
+        .ngx-file-drop__drop-zone {
+            width: 100px !important;
+            height: 100px !important;
+            border: 1px solid rgba(7, 130, 208, 0.25) !important;
+            border-radius: 8px !important;
+            transition: .125s all linear;
+
+            &:hover {
+                border: 1px solid rgba(7, 130, 208, 0.5) !important;
+                background-color: rgba(7, 130, 208, 0.05) !important;
+
+                mat-icon {
+                    color: rgba(7, 130, 208, 0.5) !important;
+                }
+            }
+        }
+
+        .ngx-file-drop__drop-zone button {
+            width: 96px !important;
+            height: 96px !important;
+            border-radius: 0 !important;
+
+            mat-icon {
+                font-size: 72px !important;
+                line-height: 72px !important;
+                width: 72px !important;
+                height: 72px !important;
+                color: rgba(7, 130, 208, 0.25) !important;
+            }
+        }
+    }
+}

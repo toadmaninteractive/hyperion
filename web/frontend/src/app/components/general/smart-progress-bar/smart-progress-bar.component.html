@@ -1,0 +1,68 @@
+<div class="progressbar-container" [class.rounded]="rounded">
+    <div class="progressbar progressbar_full" *ngIf="total > 0">
+        <div
+            class="progressbar-entry in-progress animate"
+            [class.solid]="!smooth"
+            [class.gradient]="smooth"
+            [style.width.%]="100 * inProgress / total"
+            [style.height.px]="height"
+            matTooltip="In Progress: {{ inProgress }} of {{ total }} ({{ (100 * inProgress / total).toFixed(1) }}%)"
+            matTooltipPosition="above"
+            *ngIf="inProgress > 0">
+        </div>
+
+        <div
+            class="progressbar-entry passed animate"
+            [class.solid]="!smooth"
+            [class.gradient]="smooth"
+            [style.width.%]="100 * passed / total"
+            [style.height.px]="height"
+            matTooltip="Passed: {{ passed }} of {{ total }}  ({{ (100 * passed / total).toFixed(1) }}%)"
+            matTooltipPosition="above"
+            *ngIf="passed > 0">
+        </div>
+
+        <div
+            class="progressbar-entry failed animate"
+            [class.solid]="!smooth"
+            [class.gradient]="smooth"
+            [style.width.%]="100 * failed / total"
+            [style.height.px]="height"
+            matTooltip="Failed: {{ failed }} of {{ total }} ({{ (100 * failed / total).toFixed(1) }}%)"
+            matTooltipPosition="above"
+            *ngIf="failed > 0">
+        </div>
+
+        <div
+            class="progressbar-entry blocked animate"
+            [class.solid]="!smooth"
+            [class.gradient]="smooth"
+            [style.width.%]="100 * blocked / total"
+            [style.height.px]="height"
+            matTooltip="Blocked: {{ blocked }} of {{ total }} ({{ (100 * blocked / total).toFixed(1) }}%)"
+            matTooltipPosition="above"
+            *ngIf="blocked > 0">
+        </div>
+
+        <div
+            class="progressbar-entry pending animate"
+            [class.solid]="!smooth"
+            [class.gradient]="smooth"
+            [style.width.%]="100 * pending / total"
+            [style.height.px]="height"
+            matTooltip="Pending: {{ pending }} of {{ total }} ({{ (100 * pending / total).toFixed(1) }}%)"
+            matTooltipPosition="above"
+            *ngIf="pending > 0">
+        </div>
+
+        <div class="progressbar progressbar_full" *ngIf="!total">
+            <div
+                class="progressbar-entry pending animate"
+                [class.solid]="!smooth"
+                [class.gradient]="smooth"
+                [style.width.%]="100"
+                [style.height.px]="height">
+            </div>
+        </div>
+    </div>
+</div>

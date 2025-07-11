@@ -1,0 +1,37 @@
+.legend-row {
+    line-height: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, .54);
+
+    .legend-item {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+
+        &.pending {
+            background-color: rgba(212, 213, 230, .75);
+            border: 1px solid rgba(212, 213, 230, 1);
+        }
+
+        &.in-progress {
+            background-color: rgba(54, 163, 247, .75);
+            border: 1px solid rgba(54, 163, 247, 1);
+        }
+
+        &.passed {
+            background-color: rgba(52, 191, 163, .75);
+            border: 1px solid rgba(52, 191, 163, 1);
+        }
+
+        &.failed {
+            background-color: rgba(244, 81, 108, .75);
+            border: 1px solid rgba(244, 81, 108, 1);
+        }
+
+        &.blocked {
+            background-color: rgba(255, 184, 34, .75);
+            border: 1px solid rgba(255, 184, 34, 1);
+        }
+    }
+}

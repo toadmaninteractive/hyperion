@@ -1,0 +1,204 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_personnel" hrl_file="protocol_personnel"]
+[ts file="personnel-protocol.data.ts"]
+module PersonnelProtocol
+{
+    // Personnel accounts
+    enum PersonnelAccountOrderBy
+    {
+        id;
+        username;
+        name;
+        email;
+        is_blocked;
+        is_deleted;
+        created_at;
+        updated_at;
+    }
+
+    // Personnel account roles
+    enum PersonnelAccountRoleOrderBy
+    {
+        personnel_id;
+        username;
+        project_id;
+        project_title;
+        user_role;
+    }
+
+    // Personnel groups
+    enum PersonnelGroupOrderBy
+    {
+        id;
+        name;
+        is_deleted;
+        member_count;
+        created_at;
+        updated_at;
+    }
+
+    // Personnel group roles
+    enum PersonnelGroupRoleOrderBy
+    {
+        group_id;
+        group_name;
+        project_id;
+        project_title;
+        group_role;
+    }
+
+    record AccessRoleUpdateRequest
+    {
+        AccessRole role;
+    }
+
+    [erlang http.server]
+    [ts http.client file="personnel-protocol.service.ts"]
+    webservice HyperionPersonnelService
+    {
+        // Get single personnel account
+        [erlang http.handler="rest/generated/web_rest_admin_personnel" http.callback="web_rest_callback_admin_personnel"]
+        GetPersonnelAccount => GET /api/admin/personnel/{long id} ->
+            200: {PersonnelAccount response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Get single personnel account by username
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_username" http.callback="web_rest_callback_admin_personnel"]
+        GetPersonnelAccountByUsername => GET /api/admin/personnel/username/{string username} ->
+            200: {PersonnelAccount response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Get slice of personnel account collection
+        [erlang http.handler="rest/generated/web_rest_admin_personnels" http.callback="web_rest_callback_admin_personnel"]
+        GetPersonnelAccounts => GET /api/admin/personnels
+            ?needle={?string needle}
+            &order_by={PersonnelAccountOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={int offset}
+            &limit={int limit} ->
+                200: {CollectionSlice<PersonnelAccount> response},
+                403: ForbiddenError,
+                404: NotFoundError,
+                500: InternalServerError;
+
+        // Get slice of personnel account role collection
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_roles" http.callback="web_rest_callback_admin_personnel_roles"]
+        GetPersonnelAccountRoles => GET /api/admin/personnel/{long id}/roles
+            ?needle={?string needle}
+            &order_by={PersonnelAccountRoleOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={int offset}
+            &limit={int limit} ->
+                200: {CollectionSlice<PersonnelAccountRole> response},
+                403: ForbiddenError,
+                404: NotFoundError,
+                500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_project_roles_account" http.callback="web_rest_callback_admin_personnel_roles"]
+        GetPersonnelAccountRolesForProject => GET /api/projects/{long id}/roles/account
+            ?needle={?string needle}
+            &order_by={PersonnelAccountRoleOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={int offset}
+            &limit={int limit} ->
+                200: {CollectionSlice<PersonnelAccountRole> response},
+                403: ForbiddenError,
+                404: NotFoundError,
+                500: InternalServerError;
+
+        // Set personnel account role
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_role_set" http.callback="web_rest_callback_admin_personnel_roles"]
+        SetPersonnelAccountRole => PUT /api/admin/personnel/{long id}/roles/{long project} {AccessRoleUpdateRequest request} ->
+            200: {GenericResponse response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Reset personnel account role
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_role_reset" http.callback="web_rest_callback_admin_personnel_roles"]
+        ResetPersonnelAccountRole => DELETE /api/admin/personnel/{long id}/roles/{long project} ->
+            200: {GenericResponse response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+
+        // Get single personnel group
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_group" http.callback="web_rest_callback_admin_personnel_group"]
+        GetPersonnelGroup => GET /api/admin/personnel-groups/{long id} ->
+            200: {PersonnelGroup response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Get single personnel group by name
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_group_name" http.callback="web_rest_callback_admin_personnel_group"]
+        GetPersonnelGroupByName => GET /api/admin/personnel-groups/name/{string name} ->
+            200: {PersonnelGroup response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Get slice of personnel group collection
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_groups" http.callback="web_rest_callback_admin_personnel_group"]
+        GetPersonnelGroups => GET /api/admin/personnel-groups
+            ?needle={?string needle}
+            &order_by={PersonnelGroupOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={int offset}
+            &limit={int limit} ->
+                200: {CollectionSlice<PersonnelGroup> response},
+                403: ForbiddenError,
+                404: NotFoundError,
+                500: InternalServerError;
+
+        // Get slice of personnel group role collection
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_group_roles" http.callback="web_rest_callback_admin_personnel_roles"]
+        GetPersonnelGroupRoles => GET /api/admin/personnel-groups/{long id}/roles
+            ?needle={?string needle}
+            &order_by={PersonnelGroupRoleOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={int offset}
+            &limit={int limit} ->
+                200: {CollectionSlice<PersonnelGroupRole> response},
+                403: ForbiddenError,
+                404: NotFoundError,
+                500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_project_roles_group" http.callback="web_rest_callback_admin_personnel_roles"]
+        GetPersonnelGroupRolesForProject => GET /api/admin/projects/{long id}/roles/group
+            ?needle={?string needle}
+            &order_by={PersonnelGroupRoleOrderBy order_by}
+            &order_dir={OrderDirection order_dir}
+            &offset={int offset}
+            &limit={int limit} ->
+                200: {CollectionSlice<PersonnelGroupRole> response},
+                403: ForbiddenError,
+                404: NotFoundError,
+                500: InternalServerError;
+
+        // Set personnel group role
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_group_role_set" http.callback="web_rest_callback_admin_personnel_roles"]
+        SetPersonnelGroupRole => PUT /api/admin/personnel-groups/{long id}/roles/{long project} {AccessRoleUpdateRequest request} ->
+            200: {GenericResponse response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // Reset personnel group role
+        [erlang http.handler="rest/generated/web_rest_admin_personnel_group_role_reset" http.callback="web_rest_callback_admin_personnel_roles"]
+        ResetPersonnelGroupRole => DELETE /api/admin/personnel-groups/{long id}/roles/{long project} ->
+            200: {GenericResponse response},
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

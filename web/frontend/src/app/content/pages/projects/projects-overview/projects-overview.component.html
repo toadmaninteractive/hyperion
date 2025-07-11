@@ -1,0 +1,220 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="m-portlet m-portlet--ngviewer">
+            <div class="m-portlet__head compact">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            <button
+                                mat-raised-button color="primary"
+                                (click)="showProjectCreateDialog()"
+                                *ngIf="(accountService.profile$ | async)?.isSuperadmin">
+                                Add project
+                            </button>
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="m-portlet__head-tools">
+                    <ul class="m-portlet__nav">
+                        <li class="m-portlet__nav-item">
+                            <div class="pr-2">
+                                <mat-form-field floatLabel="never" style="width: 300px">
+                                    <input placeholder="Type to filter..." matInput
+                                           (keyup)="applyFilter($event.target.value)"/>
+                                </mat-form-field>
+                            </div>
+                        </li>
+
+                        <li class="m-portlet__nav-item">
+                            <a
+                                href="javascript:void(null);"
+                                class="m-portlet__nav-link m-portlet__nav-link--icon"
+                                title="Refresh"
+                                matTooltip="Click to refresh"
+                                matTooltipPosition="above"
+                                (click)="refresh()">
+                                <i class="las la-sync-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="m-portlet__body m-portlet__body--no-padding">
+                <div class="m-portlet__preview p-0" *ngIf="ready$ | async">
+                    <table
+                        mat-table
+                        [dataSource]="dataSource"
+                        matSort
+                        [matSortActive]="column.Title"
+                        [matSortDirection]="sortDir"
+                        matSortDisableClear
+                        (matSortChange)="sortTable($event)">
+                        <!-- ID column -->
+                        <ng-container [matColumnDef]="column.Id">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                ID
+                            </th>
+
+                            <td mat-cell *matCellDef="let project" style="width: 100px">
+                                <strong>{{ project.id }}</strong>
+                            </td>
+                        </ng-container>
+
+                        <!-- Title column -->
+                        <ng-container [matColumnDef]="column.Title">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Project Title
+                            </th>
+
+                            <td mat-cell *matCellDef="let project">
+                                <a [routerLink]="['/dashboard', project.key]">
+                                    <strong>{{ project.title }}</strong>
+                                </a>
+                            </td>
+                        </ng-container>
+
+                        <!-- Key column -->
+                        <ng-container [matColumnDef]="column.Key">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                URL Key
+                            </th>
+
+                            <td mat-cell *matCellDef="let project">
+                                <strong>{{ project.key }}</strong>
+                            </td>
+                        </ng-container>
+
+                        <!-- Slack receivers column -->
+                        <ng-container [matColumnDef]="column.SlackReceivers">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Slack Channels
+                            </th>
+
+                            <td mat-cell *matCellDef="let project">
+                                <ng-container [ngSwitch]="!!project.slackReceivers">
+                                    <ng-container *ngSwitchCase="true">
+                                        <ng-container *ngFor="let channel of project.slackReceivers.split(',')">
+                                            <div *ngIf="channel.trim()">
+                                                <strong>#{{ channel.trim() }}</strong>
+                                            </div>
+                                        </ng-container>
+                                    </ng-container>
+
+                                    <span class="dimmed" *ngSwitchCase="false">Not set</span>
+                                </ng-container>
+                            </td>
+                        </ng-container>
+
+                        <!-- JIRA Title column -->
+                        <ng-container [matColumnDef]="column.JiraTitle">
+                            <th mat-header-cell *matHeaderCellDef>
+                                JIRA Title
+                            </th>
+
+                            <td mat-cell *matCellDef="let project">
+                                <ng-container [ngSwitch]="!!project.jiraTitle">
+                                    <span class="dimmed" *ngSwitchCase="false">Not set</span>
+
+                                    <a [href]="project.jiraUrl" target="_blank" matTooltip="Click to open"
+                                       matTooltipPosition="above" *ngSwitchCase="true">
+                                        <strong class="pl-1">{{ project.jiraTitle }}</strong>
+                                    </a>
+                                </ng-container>
+                            </td>
+                        </ng-container>
+
+                        <!-- JIRA Key column -->
+                        <ng-container [matColumnDef]="column.JiraKey">
+                            <th mat-header-cell *matHeaderCellDef>
+                                JIRA Key
+                            </th>
+
+                            <td mat-cell *matCellDef="let project">
+                                <ng-container [ngSwitch]="!!(project.jiraUrl && project.jiraKey)">
+                                    <span class="dimmed" *ngSwitchCase="false">Not set</span>
+
+                                    <a [href]="jiraProjectUrl(project.jiraUrl, project.jiraKey)" target="_blank"
+                                       matTooltip="Click to open" matTooltipPosition="above" *ngSwitchCase="true">
+                                        <img src="./assets/app/media/img/tools/jira.png" class="x-table-icon v-a-sub"
+                                             alt="JIRA key">
+                                        <strong class="pl-1">{{ project.jiraKey }}</strong>
+                                    </a>
+                                </ng-container>
+                            </td>
+                        </ng-container>
+
+                        <!-- Created At column -->
+                        <ng-container [matColumnDef]="column.CreatedAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Created At
+                            </th>
+
+                            <td mat-cell *matCellDef="let project" style="width: 125px">
+                                {{ project.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Updated At column -->
+                        <ng-container [matColumnDef]="column.UpdatedAt">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Updated At
+                            </th>
+
+                            <td mat-cell *matCellDef="let project" style="width: 125px">
+                                {{ project.updatedAt | date: 'yyyy-MM-dd HH:mm' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Actions column -->
+                        <ng-container [matColumnDef]="column.Actions">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                                Actions
+                            </th>
+
+                            <td mat-cell *matCellDef="let project" style="width: 125px">
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Click to edit"
+                                    matTooltipPosition="above"
+                                    (click)="showProjectEditDialog(project)">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+
+                                <button
+                                    mat-icon-button
+                                    color="warn"
+                                    matTooltip="Click to delete"
+                                    matTooltipPosition="above"
+                                    [swal]="{
+                                        title: 'Confirmation',
+                                        html: 'Delete project <b>'+ project.title + '</b>?',
+                                        type: 'question',
+                                        confirmButtonText: 'Delete',
+                                        confirmButtonColor: '#f4516c',
+                                        confirmButtonClass: 'btn-danger',
+                                        showCancelButton: true,
+                                        heightAuto: false
+                                    }"
+                                    (confirm)="deleteProject(project)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <!-- Table rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                    </table>
+                </div>
+                <mat-paginator
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizes"
+                    showFirstLastButtons>
+                </mat-paginator>
+
+            </div>
+        </div>
+    </div>
+</div>

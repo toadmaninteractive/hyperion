@@ -1,0 +1,99 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_setup" hrl_file="protocol_setup"]
+[ts file="setup-protocol.data.ts"]
+module SetupProtocol
+{
+    record CreateSetupStepRequest
+    {
+        ?long parent_id;
+        string title;
+        ?string description;
+        bool is_draft;
+        int order_num;
+    }
+
+    [* patch_record]
+    record UpdateSetupStepRequest
+    {
+        ?long parent_id;
+        string title;
+        string description;
+        bool is_draft;
+        int order_num;
+    }
+
+    enum SetupError
+    {
+        parent_not_exists;
+        project_not_exists;
+        title_already_exists;
+        has_children;
+    }
+
+    enum SetupLinkError
+    {
+        setup_step_not_exists;
+        parameter_not_exists;
+        project_mismatch;
+    }
+
+    [erlang http.server]
+    [ts http.client file="setup-protocol.service.ts"]
+    webservice HyperionSetupService
+    {
+        [erlang http.handler="rest/generated/web_rest_setup" http.callback="web_rest_callback_setup"]
+        GetSetup => GET /api/setup/{long project_id} ->
+            200: Collection<TreeNode<SetupStep>>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_setup_step" http.callback="web_rest_callback_setup"]
+        GetSetupStep => GET /api/setup/steps/{long id} ->
+            200: SetupStep,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_setup_steps" http.callback="web_rest_callback_setup" http.cowboy_req]
+        CreateSetupStep => POST /api/setup/steps/new/{long project_id} CreateSetupStepRequest ->
+            200: SetupStep,
+            400: BadRequestError<SetupError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_setup_step" http.callback="web_rest_callback_setup" http.cowboy_req]
+        UpdateSetupStep => PUT /api/setup/steps/{long id} UpdateSetupStepRequest ->
+            200: SetupStep,
+            400: BadRequestError<SetupError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_setup_step" http.callback="web_rest_callback_setup" http.cowboy_req]
+        DeleteSetupStep => DELETE /api/setup/steps/{long id} ->
+            200: GenericResponse,
+            400: BadRequestError<SetupError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_setup_step_param_link" http.callback="web_rest_callback_setup" http.cowboy_req]
+        LinkSetupStepToParameter => PUT /api/setup/steps/{long id}/param/{long param_id}/link Empty ->
+            200: SetupStep,
+            400: BadRequestError<SetupLinkError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_setup_step_param_unlink" http.callback="web_rest_callback_setup" http.cowboy_req]
+        UnlinkSetupStepFromParameter => PUT /api/setup/steps/{long id}/param/unlink Empty ->
+            200: SetupStep,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

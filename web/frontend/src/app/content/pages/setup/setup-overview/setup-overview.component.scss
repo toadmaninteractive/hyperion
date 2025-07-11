@@ -1,0 +1,128 @@
+.non-sticky-block {
+    margin-left: -15px;
+    transition: background-color 125ms linear;
+}
+
+.sticky-block-parent {
+    box-shadow: -5px 0 5px -5px rgba(51, 51, 51, .25), 0px 0px 5px 0px rgba(51, 51, 51, .25);
+    padding-right: 0;
+    border: 1px solid #ffffff;
+    position: sticky;
+    top: 100px;
+    height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: -28px;
+}
+
+.sticky-block {
+    display: block;
+    position: sticky;
+    top: 100px;
+    z-index: 100;
+}
+/*
+.sticky-row {
+    margin-right: -30px;
+}
+*/
+.darken {
+    background-color: rgba(176, 196, 222, .125);
+}
+
+.small-line {
+    line-height: 21px;
+}
+
+.btn-save {
+    position: relative;
+    z-index: 10;
+    top: 32px;
+    left: 363px;
+    border-radius: 5px;
+    background-color: white;
+    padding: 0;
+}
+
+.btn-save:hover {
+    cursor: pointer;
+    background-color: #f1f1f1;
+    transition: .2s;
+}
+
+::ng-deep .basic-tree > li div > ul, ::ng-deep .basic-tree > li div > ul > li {
+    list-style-type: initial !important;
+}
+
+::ng-deep .basic-tree > li div > ol, ::ng-deep .basic-tree > li div > ol > li {
+    list-style-type: decimal !important;
+}
+
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}
+
+.mat-tree-node {
+    overflow: visible;
+    border: 2px solid transparent;
+}
+
+.vertical-text {
+    transform: rotate(90deg);
+    transform-origin: left top 0;
+}
+
+input.m-selected {
+    background-color: #F5F7FA !important;
+    border: 1px solid lightgrey !important;
+    box-shadow: 0 0 7px 0 lightgrey !important;
+}
+
+.draft {
+    color: #ff8949;
+    font-style: italic;
+}
+
+.progress-percent {
+    text-align: center;
+    top: -60%;
+    z-index: 500;
+    display: block;
+    position: relative;
+    font-size: 16px;
+}
+
+.progress-container {
+    display: inline-block;
+    height: 100px;
+    color: #0782d0;
+    width: 100px !important;
+    height: 100px !important;
+    border: 1px solid rgba(7, 130, 208, 0.25) !important;
+    border-radius: 8px !important;
+    transition: .125s all linear;
+}
+
+.align-icon {
+    justify-content: center!important;
+    background-repeat: no-repeat!important;
+    display: flex!important;
+    fill: currentColor!important;
+    height: 18px!important;
+    width: 18px!important;
+    align-items: center!important;
+}
+
+.m-portlet__preview {
+    padding-right: 0px!important;
+}
+
+.la-close-s-f {
+    font-size: 24px;
+    color: #c4c5d6;
+}
+.la-close-s-f:hover {
+    cursor: pointer;
+    font-size: 24px;
+    color: #a5a6b7;
+}

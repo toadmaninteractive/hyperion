@@ -1,0 +1,16 @@
+.gray {
+    color: var(--gray)
+}
+
+.mat-icon-button {
+    line-height: 21px !important;
+}
+
+.action-bar-button {
+    padding-right: 15px;
+    padding-top: 15px;
+    padding-bottom: 10px;
+}
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}

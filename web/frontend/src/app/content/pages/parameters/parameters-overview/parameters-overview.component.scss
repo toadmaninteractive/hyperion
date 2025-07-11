@@ -1,0 +1,146 @@
+.non-sticky-block {
+    margin-left: -15px;
+    transition: background-color 125ms linear;
+}
+
+.sticky-block-parent {
+    box-shadow: -5px 0 5px -5px rgba(51, 51, 51, .25), 0px 0px 5px 0px rgba(51, 51, 51, .25);
+    padding-right: 0;
+    border: 1px solid #ffffff;
+    position: sticky;
+    top: 100px;
+    height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: -28px;
+}
+
+.sticky-block {
+    display: block;
+    position: sticky;
+    top: 100px;
+    z-index: 100;
+}
+/*
+.sticky-row {
+    margin-right: -30px;
+}
+*/
+.darken {
+    background-color: rgba(176, 196, 222, .125);
+}
+
+.small-line {
+    line-height: 21px;
+}
+
+.medium-line {
+    line-height: 24px;
+}
+
+.bold-icon {
+    font-size: 24px !important;
+    height: 24px !important;
+    width: 24px !important;
+    line-height: 26px;
+}
+
+input.inplace {
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    width: 250px;
+    height: 26px;
+    padding: 2px 5px;
+}
+
+::ng-deep .basic-tree > li div > ul, ::ng-deep .basic-tree > li div > ul > li {
+    list-style-type: initial !important;
+}
+
+::ng-deep .basic-tree > li div > ol, ::ng-deep .basic-tree > li div > ol > li {
+    list-style-type: decimal !important;
+}
+
+input.m-selected {
+    background-color: #F5F7FA !important;
+    border: 1px solid lightgrey !important;
+    box-shadow: 0 0 7px 0 lightgrey !important;
+}
+
+.draft {
+    color: #ff8949;
+    font-style: italic;
+}
+
+.progress-percent {
+    text-align: center;
+    top: -60%;
+    z-index: 500;
+    display: block;
+    position: relative;
+    font-size: 16px;
+}
+
+.progress-container {
+    display: inline-block;
+    color: #0782d0;
+    width: 100px !important;
+    height: 100px !important;
+    border: 1px solid rgba(7, 130, 208, 0.25) !important;
+    border-radius: 8px !important;
+    transition: .125s all linear;
+}
+
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}
+
+.parameter-list-table {
+    margin: 5px;
+}
+
+.input-list {
+    margin-bottom: 5px !important;
+}
+.input-check-box {
+    margin-right: 5px;
+    margin-left: 5px;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.block-flex {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between
+}
+
+.m-portlet__preview {
+    padding-right: 0px!important;
+}
+
+.button-link-add{
+    color: #3f51b5;
+}
+.button-link-add:hover{
+    cursor: pointer;
+    border-bottom: 1px solid #3f51b5;
+}
+
+.button-link-add-dis{
+    color: #3f51b5;
+}
+.node-input-wrapper{
+    margin: 3px 1px 0px 5px!important;
+}
+
+.la-close-s-f {
+    font-size: 24px;
+    color: #c4c5d6;
+}
+
+.la-close-s-f:hover {
+    cursor: pointer;
+    font-size: 24px;
+    color: #a5a6b7;
+}

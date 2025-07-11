@@ -1,0 +1,20 @@
+<ng-container *ngIf="{
+    projects: projectService.projects$.asObservable() | async,
+    activeProject: projectService.activeProject$.asObservable() | async
+} as x">
+    <a
+        href="javascript:void(null);"
+        class="m-nav__section m-nav__dropdown"
+        [style.width.px]="computeLength(x.activeProject.title)"
+        *ngIf="x.projects?.length > 0 && x.activeProject">
+        <mat-select
+            placeholder="Select project"
+            panelClass="m-mat-select-panel"
+            [value]="x.activeProject"
+            (valueChange)="navService.switchProject($event.key)">
+            <mat-option *ngFor="let project of x.projects" [value]="project">
+                {{ project.title }}
+            </mat-option>
+        </mat-select>
+    </a>
+</ng-container>

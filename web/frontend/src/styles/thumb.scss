@@ -1,0 +1,38 @@
+.thumb {
+    width: 100px;
+    height: 100px;
+    border: 1px solid rgba(204, 204, 204, .25);
+    border-radius: 4px;
+    position: relative;
+
+    &:hover {
+        border: 1px solid rgba(204, 204, 204, .75);
+    }
+
+    img, .placeholder {
+        width: 98px;
+        height: 98px;
+        vertical-align: middle;
+        border-radius: 4px;
+    }
+
+    .placeholder {
+        padding: 40px;
+    }
+
+    .delete {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        background-color: #b22222;
+        color: white;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+
+        &:hover {
+            background-color: #fa8072;
+        }
+    }
+}

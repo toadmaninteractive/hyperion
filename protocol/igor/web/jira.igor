@@ -1,0 +1,174 @@
+using DbProtocol;
+using CommonProtocol;
+using DataProtocol;
+
+[* json.enabled string.enabled enum_descriptions]
+[erlang file="protocol/protocol_jira" hrl_file="protocol_jira"]
+[ts file="jira-protocol.data.ts"]
+module JiraProtocol
+{
+    record CreateJiraInstanceRequest
+    {
+        string title;
+        string url;
+    }
+
+    [* patch_record]
+    record UpdateJiraInstanceRequest
+    {
+        ?string title;
+        ?string url;
+    }
+
+    enum JiraInstanceError
+    {
+        # JIRA title already exists
+        title_already_exists;
+
+        # Invlaid JIRA title
+        invalid_title;
+
+        # Invalid JIRA base URL
+        invalid_url;
+    }
+
+    record CreateJiraIssueRequest
+    {
+        string summary;
+        string description;
+    }
+
+    record CreateJiraIssueResponse
+    {
+        string jira_issue_key;
+        string jira_issue_url;
+    }
+
+    enum JiraIssueError
+    {
+        # JIRA issue already assigned
+        jira_issue_already_assigned;
+
+        # JIRA instance not linked
+        jira_instance_not_linked;
+
+        # Invalid JIRA instance
+        invalid_jira_instance;
+
+        # Invalid JIRA project key
+        invalid_jira_key;
+
+        # Invalid JIRA base URL
+        invalid_jira_url;
+
+        # JIRA user not exists
+        jira_user_not_exists;
+
+        # No JIRA credentials
+        no_credentials;
+
+        # Invalid JIRA credentials
+        invalid_credentials;
+
+        # Invalid project
+        invalid_project;
+
+        # Invalid issue summary
+        invalid_summary;
+    }
+
+    record AuthenticateJiraRequest
+    {
+        string username;
+        string password;
+    }
+
+    enum JiraAuthenticationError
+    {
+        # Invalid JIRA instance
+        invalid_jira_instance;
+
+        # Invalid JIRA base URL
+        invalid_jira_url;
+
+        # JIRA user not exists
+        jira_user_not_exists;
+
+        # Invalid JIRA credentials
+        invalid_credentials;
+    }
+
+    [erlang http.server]
+    [ts http.client file="jira-protocol.service.ts"]
+    webservice HyperionJiraService
+    {
+        // JIRA instance managent
+        [erlang http.handler="rest/generated/web_rest_jira_instances" http.callback="web_rest_callback_jira"]
+        GetJiraInstances => GET /api/jira/instances ->
+            200: Collection<JiraInstance>,
+            403: ForbiddenError,
+            500: InternalServerError;
+            
+        [erlang http.handler="rest/generated/web_rest_jira_instance" http.callback="web_rest_callback_jira"]
+        GetJiraInstance => GET /api/jira/instances/{long id} ->
+            200: JiraInstance,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_jira_instances" http.callback="web_rest_callback_jira" http.cowboy_req]
+        CreateJiraInstance => POST /api/jira/instances CreateJiraInstanceRequest ->
+            200: JiraInstance,
+            400: BadRequestError<JiraInstanceError>,
+            403: ForbiddenError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_jira_instance" http.callback="web_rest_callback_jira" http.cowboy_req]
+        UpdateJiraInstance => PUT /api/jira/instances/{long id} UpdateJiraInstanceRequest ->
+            200: JiraInstance,
+            400: BadRequestError<JiraInstanceError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_jira_instance" http.callback="web_rest_callback_jira" http.cowboy_req]
+        DeleteJiraInstance => DELETE /api/jira/instances/{long id} ->
+            200: GenericResponse,
+            400: BadRequestError<JiraInstanceError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // JIRA issues
+        [erlang http.handler="rest/generated/web_rest_jira_issues" http.callback="web_rest_callback_jira" http.cowboy_req]
+        CreateJiraIssue => POST /api/jira/issues/{long test_run_item_id} CreateJiraIssueRequest ->
+            200: CreateJiraIssueResponse,
+            400: BadRequestError<JiraIssueError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        // JIRA authentication
+        [erlang http.handler="rest/generated/web_rest_jira_auth" http.callback="web_rest_callback_jira" http.cowboy_req]
+        GetAuthenticationStatus => GET /api/jira/auth/{long jira_id} ->
+            200: GenericResponse,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+        
+        [erlang http.handler="rest/generated/web_rest_jira_auth" http.callback="web_rest_callback_jira" http.cowboy_req]
+        Authenticate => POST /api/jira/auth/{long jira_id} AuthenticateJiraRequest ->
+            200: GenericResponse,
+            400: BadRequestError<JiraAuthenticationError>,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+
+        [erlang http.handler="rest/generated/web_rest_jira_auth" http.callback="web_rest_callback_jira" http.cowboy_req]
+        RevokeAuthentication => DELETE /api/jira/auth/{long jira_id} ->
+            200: GenericResponse,
+            403: ForbiddenError,
+            404: NotFoundError,
+            500: InternalServerError;
+    }
+}

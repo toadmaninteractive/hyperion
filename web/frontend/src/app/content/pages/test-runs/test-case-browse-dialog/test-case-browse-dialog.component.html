@@ -1,0 +1,28 @@
+<h1 mat-dialog-title>Select test cases</h1>
+
+<div mat-dialog-content>
+    <m-dynamic-tree
+        [inputNodes]="nodes"
+        [canAdd]="false"
+        [canRemove]="false"
+        [canDrag]="false"
+        [showCheckboxes]="true"
+        [precheckedNodeIdSet]="precheckedCasesSet"
+        (checkedNodeSetChange)="getCheckedNodeCallback($event)">
+        <ng-template #nodeTitleTemplate let-node="node">
+            <i *ngIf="node.item.isGroup" class="las la-folder-open f-s-20"></i>
+            <span
+                *ngIf="data.activeCaseStatusMap.has(node.item.id) && !node.item.isGroup"
+                class="m-badge x-tag mini align-text-top ml-1 mr-1"
+                [ngClass]="badgeTestClass(data.activeCaseStatusMap.get(node.item.id))">
+                            {{ testStatusText(data.activeCaseStatusMap.get(node.item.id)) | uppercase }}
+            </span>
+            <span>{{ node.item.title }}</span>
+        </ng-template>
+    </m-dynamic-tree>
+</div>
+
+<div mat-dialog-actions class="justify-content-end">
+    <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Cancel</button>
+    <button mat-raised-button [mat-dialog-close]="caseSet" color="primary" [disabled]="matchCasesSet()">Confirm</button>
+</div>

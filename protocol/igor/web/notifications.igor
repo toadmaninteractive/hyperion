@@ -1,0 +1,219 @@
+using DbProtocol;
+using CommonProtocol;
+// using DataProtocol;
+
+[* json.enabled string.enabled]
+[erlang file="protocol/protocol_notification" hrl_file="protocol_notification"]
+[ts file="notification-protocol.data.ts"]
+module NotificationProtocol
+{
+    enum NotificationKind
+    {
+        // Generic
+        hello;
+
+        // Projects
+        project_created;
+        project_updated;
+        project_deleted;
+
+        // Parameter
+        parameter_created;
+        parameter_updated;
+        parameter_deleted;
+
+        // Setup
+        setup_step_created;
+        setup_step_updated;
+        setup_step_deleted;
+
+        // Test cases
+        test_case_created;
+        test_case_updated;
+        test_case_deleted;
+
+        // Test runs
+        test_run_created;
+        test_run_updated;
+        test_run_started;
+        test_run_closed;
+        test_run_reopened;
+        test_run_deleted;
+
+        // Tests
+        test_created;
+        test_updated;
+        test_started;
+        test_passed;
+        test_failed;
+        test_blocked;
+        test_reopened;
+        test_deleted;
+
+        // File attachments
+        attachment_linked;
+        attachment_unlinked;
+
+        // JIRA instances
+        jira_instance_created;
+        jira_instance_updated;
+        jira_instance_deleted;
+    }
+
+    interface IActor
+    {
+        long actor_id;
+        string actor_name;
+    }
+
+    interface IData<T>
+    {
+        T data;
+    }
+
+    [ts notification notification.name="AbstractNotification"]
+    variant Notification
+    {
+        tag NotificationKind kind;
+    }
+
+    record Notification.Hello[hello]
+    {
+    }
+
+    // Projects
+    record Notification.ProjectCreated[project_created]: IActor, IData<Project>
+    {
+    }
+
+    record Notification.ProjectUpdated[project_updated]: IActor, IData<Project>
+    {
+    }
+
+    record Notification.ProjectDeleted[project_deleted]: IActor, IData<Project>
+    {
+    }
+
+    // Parameters
+    record Notification.ParameterCreated[parameter_created]: IActor, IData<Parameter>
+    {
+    }
+
+    record Notification.ParameterUpdated[parameter_updated]: IActor, IData<Parameter>
+    {
+    }
+
+    record Notification.ParameterDeleted[parameter_deleted]: IActor, IData<Parameter>
+    {
+    }
+
+    // Setup steps
+    record Notification.SetupStepCreated[setup_step_created]: IActor, IData<SetupStep>
+    {
+    }
+
+    record Notification.SetupStepUpdated[setup_step_updated]: IActor, IData<SetupStep>
+    {
+    }
+
+    record Notification.SetupStepDeleted[setup_step_deleted]: IActor, IData<SetupStep>
+    {
+    }
+
+    // Test cases
+    record Notification.TestCaseCreated[test_case_created]: IActor, IData<TestCase>
+    {
+    }
+
+    record Notification.TestCaseUpdated[test_case_updated]: IActor, IData<TestCase>
+    {
+    }
+
+    record Notification.TestCaseDeleted[test_case_deleted]: IActor, IData<TestCase>
+    {
+    }
+
+    // Tests runs
+    record Notification.TestRunCreated[test_run_created]: IActor, IData<TestRun>
+    {
+    }
+
+    record Notification.TestRunUpdated[test_run_updated]: IActor, IData<TestRun>
+    {
+    }
+
+    record Notification.TestRunStarted[test_run_started]: IActor, IData<TestRun>
+    {
+    }
+
+    record Notification.TestRunClosed[test_run_closed]: IActor, IData<TestRun>
+    {
+    }
+
+    record Notification.TestRunReopened[test_run_reopened]: IActor, IData<TestRun>
+    {
+    }
+
+    record Notification.TestRunDeleted[test_run_deleted]: IActor, IData<TestRun>
+    {
+    }
+
+    // Tests (test run items)
+    record Notification.TestCreated[test_created]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestUpdated[test_updated]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestStarted[test_started]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestPassed[test_passed]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestFailed[test_failed]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestBlocked[test_blocked]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestReopened[test_reopened]: IActor, IData<TestRunItem>
+    {
+    }
+
+    record Notification.TestDeleted[test_deleted]: IActor, IData<TestRunItem>
+    {
+    }
+
+    // File attachments
+    record Notification.AttachmentLinked[attachment_linked]: IActor
+    {
+        FileAttachment attachment;
+        FileAttachmentLink link;
+    }
+
+    record Notification.AttachmentUnlinked[attachment_unlinked]: IActor
+    {
+        FileAttachment attachment;
+        FileAttachmentLink link;
+    }
+
+    // JIRA instances
+    record Notification.JiraInstanceCreated[jira_instance_created]: IActor, IData<JiraInstance>
+    {
+    }
+
+    record Notification.JiraInstanceUpdated[jira_instance_updated]: IActor, IData<JiraInstance>
+    {
+    }
+
+    record Notification.JiraInstanceDeleted[jira_instance_deleted]: IActor, IData<JiraInstance>
+    {
+    }
+}

@@ -1,0 +1,58 @@
+<h1 mat-dialog-title>Create JIRA instance</h1>
+
+<div mat-dialog-content>
+    <form class="m-form m-form--fit" [ngClass]="{ dimmed: loading$ | async }" style="height: 250px" *ngIf="newJiraInstance">
+        <fieldset [disabled]="loading$ | async">
+            <m-alert [(message)]="errorMessage" kind="danger"></m-alert>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-1">
+                <mat-form-field class="example-full-width">
+                    <input
+                        type="text"
+                        required
+                        matInput
+                        name="newJiraTitle"
+                        placeholder="JIRA title"
+                        [(ngModel)]="newJiraInstance.title">
+
+                    <mat-hint align="start" class="f-s-12 pt-1">
+                        Unique title to identify this JIRA instance
+                    </mat-hint>
+                </mat-form-field>
+            </div>
+
+            <div class="form-group m-form__group pl-0 pr-0 mb-4">
+                <mat-form-field class="example-full-width">
+                    <input
+                        type="text"
+                        required
+                        matInput
+                        name="newJiraUrl"
+                        placeholder="JIRA base URL"
+                        [(ngModel)]="newJiraInstance.url">
+
+                    <mat-hint align="start" class="f-s-11 pt-1 block">
+                        Should be valid JIRA base URL
+                    </mat-hint>
+                </mat-form-field>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+<div mat-dialog-actions class="justify-content-end">
+    <button
+        mat-button
+        [mat-dialog-close]="null"
+        cdkFocusInitial>
+        No, thanks
+    </button>
+
+    <button
+        mat-raised-button
+        color="primary"
+        [disabled]="(loading$ | async) || !isJiraInstanceValid()"
+        (click)="createJiraInstance()">
+        Create JIRA instance
+    </button>
+</div>

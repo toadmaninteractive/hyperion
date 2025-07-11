@@ -1,0 +1,12 @@
+.angular-editor-toolbar-set:nth-child(1), // undo, redo
+::ng-deep .angular-editor-button[id='superscript-'],
+::ng-deep .angular-editor-button[id='subscript-'],
+::ng-deep .angular-editor-toolbar-set:nth-child(3), // justify
+::ng-deep .angular-editor-toolbar-set:nth-child(4), // indent, outdent
+::ng-deep .angular-editor-toolbar-set:nth-child(7), // select font
+::ng-deep .angular-editor-toolbar-set:nth-child(8), // select font size
+::ng-deep .angular-editor-toolbar-set:nth-child(10), // link, unlink, images
+::ng-deep .angular-editor-toolbar-set:nth-child(12) // HTML code
+{
+    display: none !important;
+}

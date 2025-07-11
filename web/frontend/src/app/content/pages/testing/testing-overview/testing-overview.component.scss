@@ -1,0 +1,13 @@
+.search-box{
+    margin-top: 10px;
+    position: relative;
+}
+
+::ng-deep .ps__rail-x{
+    visibility: hidden;
+}
+
+::ng-deep .mat-button-toggle-label-content {
+    font-size: 14px;
+    font-weight: bold;
+}

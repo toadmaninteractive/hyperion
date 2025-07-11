@@ -1,0 +1,38 @@
+* {
+    line-height: normal;
+}
+
+.new-in-place {
+    & {
+        outline: none;
+        padding: 0px 5px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        transition: border 125ms linear,
+        box-shadow 125ms linear,
+        opacity 125ms linear;
+        box-shadow: 0 0 7px 0 transparent;
+        background-color: transparent;
+        /*max-width: 100ch !important;*/
+    }
+
+    &:hover {
+        border: 1px solid rgba(221, 221, 221, .75);
+        box-shadow: 0 0 7px 0 rgba(221, 221, 221, .75);
+        background-color: white;
+    }
+
+    &:focus {
+        border: 1px solid rgba(54, 163, 247, .75);
+        box-shadow: 0 0 7px 0 rgba(54, 163, 247, .5) !important;
+        background-color: white;
+    }
+
+    &.monospace {
+        font-family: 'Consolas', sans-serif;
+    }
+
+    &::placeholder, &:-ms-input-placeholder, &::-ms-input-placeholder {
+        color: #aaa;
+    }
+}

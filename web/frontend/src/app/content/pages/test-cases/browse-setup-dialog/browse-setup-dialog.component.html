@@ -1,0 +1,43 @@
+<h1 mat-dialog-title>Choose test setup</h1>
+
+<div mat-dialog-content>
+    <m-dynamic-tree-map
+        [inputNodes$]="setupService.setupTree$"
+        (nodeAdded)="addDraftTreeNode($event)">
+        <ng-template #nodeTitleTemplate let-node="node">
+            <div class="block-flex">
+                <i class="las la-cog" *ngIf="node.item.parameterId > 0"></i>
+
+                <span class="m-badge m-badge--primary text-uppercase x-tag mini align-text-top mr-1"
+                      *ngIf="node.item.id === data.setupId">
+                    Current
+                </span>
+
+                <span class="m-badge m-badge--primary text-uppercase x-tag mini align-text-top ml-3 mr-1"
+                      *ngIf="node.item.id === data.preconditionId">
+                Precondition
+            </span>
+
+                <a *ngIf="node.item.id > 0" [id]="'link-setup-' + node.item.id" href="javascript:void(null)"
+                   class="tree-label m-0" (click)="chooseSetup(node)">
+                    {{ node.item.title }}
+                </a>
+
+                <input
+                    *ngIf="node.item.id === 0"
+                    type="text"
+                    class="in-place-browse monospace"
+                    id="input-setup-0"
+                    [placeholder]="'Put some text here'"
+                    [style.width.ch]="node.item.title.length ? node.item.title.length + 2 : 20"
+                    [(ngModel)]="node.item.title"
+                    (keyup.enter)="$event.target.blur()"
+                    (blur)="invalidateTreeNode(node, 'title')">
+            </div>
+        </ng-template>
+    </m-dynamic-tree-map>
+</div>
+
+<div mat-dialog-actions class="justify-content-end">
+    <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Close</button>
+</div>
